@@ -3,58 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯交接</title>
+    <title>飯店櫃檯交接系統</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .item { background: #fff; border-left: 5px solid #1a73e8; padding: 10px; margin-top: 10px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .room { font-weight: bold; }
-        .time { font-size: 0.8rem; color: #888; float: right; }
+        :root { --primary: #1a73e8; --bg: #f0f2f5; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; margin-top: 0; }
+        
+        .input-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 25px; }
+        .grid-input { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; box-sizing: border-box; width: 100%; }
+        .full-width { grid-column: span 2; }
+        
+        button { width: 100%; background: var(--primary); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:active { background: #1557b0; transform: scale(0.98); }
+
+        .item-card { border-left: 5px solid #ccc; background: #fff; padding: 12px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .type-luggage { border-left-color: #f39c12; } 
+        .type-vip { border-left-color: #e74c3c; }    
+        .type-repair { border-left-color: #3498db; } 
+        
+        .item-info { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: bold; }
+        .time-tag { font-size: 0.8rem; color: #999; font-weight: normal; }
+        .note-text { color: #555; font-size: 1rem; line-height: 1.4; word-break: break-all; }
+        .status-msg { text-align: center; color: #666; padding: 20px; font-size: 0.9rem; }
     </style>
 </head>
-<body>
+<body onload="loadData()">
+
 <div class="container">
-    <h2>🏨 櫃檯交接看板</h2>
-    <input type="text" id="room" placeholder="房號">
-    <select id="type">
-        <option value="luggage">📦 行李物品</option>
-        <option value="vip">🌟 VIP 需求</option>
-        <option value="repair">🛠️ 維修保養</option>
-    </select>
-    <input type="text" id="note" placeholder="內容">
-    <button onclick="send()">發佈到雲端</button>
-    <div id="list" style="margin-top:20px;"><p style="text-align:center;">連線中...</p></div>
+    <h1>🏨 櫃檯即時交接看板</h1>
+    
+    <div class="input-box">
+        <div class="grid-input">
+            <input type="text" id="room" placeholder="房號/位置">
+            <select id="type">
+                <option value="luggage">📦 行李物品</option>
+                <option value="vip">🌟 VIP 需求</option>
+                <option value="repair">🛠️ 維修保養</option>
+            </select>
+            <input type="text" id="note" class="full-width" placeholder="請輸入具體交接內容...">
+        </div>
+        <button onclick="saveToCloud()">發佈並同步雲端</button>
+    </div>
+
+    <div id="handoverList" class="status-msg">正在連線資料庫...</div>
 </div>
 
 <script>
-    // 這是根據你提供的 ID 產生的 API 網址，請確認這一行沒有被改動
-    const url = "https://script.google.com/macros/s/AKfycbw3GSeLHhJ3CO9DO-FDvWnKnWl-eslgUh6rsEnJ5-Fp8_j9iiQPoiN6CG1YgzHKp-Xz/exec";
+    // 這是你最新的 API 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbzZSpYHRJpU4D145kzXTRkfQZ1Sgz2JRR4DMU3ftiRh_56_QpvgiuBDGcym0xwxsEjB/exec"; 
 
-    function send() {
+    function saveToCloud() {
         const room = document.getElementById('room').value;
+        const type = document.getElementById('type').value;
         const note = document.getElementById('note').value;
-        if(!room || !note) return alert("請填寫內容");
-        
-        fetch(url, { method: "POST", mode: "no-cors", body: JSON.stringify({ room, type: document.getElementById('type').value, note }) })
-        .then(() => { alert("指令已發送！請檢查試算表。"); location.reload(); })
-        .catch(() => alert("發送失敗，請確認 Google 部署設定"));
+
+        if (!room || !note) return alert("請填寫房號與內容！");
+
+        // 使用 no-cors 模式確保發送不被瀏覽器攔截
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ room: room, type: type, note: note })
+        }).then(() => {
+            alert("同步指令已發送！");
+            document.getElementById('room').value = "";
+            document.getElementById('note').value = "";
+            setTimeout(loadData, 1000); // 延遲一秒載入確保雲端已寫入
+        }).catch(() => alert("連線失敗，請檢查網路"));
     }
 
-    function load() {
-        fetch(url).then(res => res.json()).then(data => {
-            const list = document.getElementById('list');
-            list.innerHTML = data.length ? "" : "目前無紀錄";
+    function loadData() {
+        const list = document.getElementById('handoverList');
+        fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length === 0) {
+                list.innerHTML = "目前尚無交接紀錄";
+                return;
+            }
+            list.innerHTML = ""; 
             data.reverse().forEach(row => {
-                list.innerHTML += `<div class="item"><span class="time">${row[0]}</span><div class="room">${row[1]} [${row[2]}]</div><div>${row[3]}</div></div>`;
+                list.innerHTML += `
+                    <div class="item-card type-${row[2]}">
+                        <div class="item-info">
+                            <span>${row[1]}</span>
+                            <span class="time-tag">${row[0]}</span>
+                        </div>
+                        <div class="note-text">${row[3]}</div>
+                    </div>`;
             });
-        }).catch(err => {
-            document.getElementById('list').innerHTML = "<p style='color:red;'>連線 API 失敗</p><small>請確認 Google 部署選「新版本」並設為「所有人」</small>";
+        })
+        .catch(() => {
+            list.innerHTML = "<span style='color:red;'>連線 API 失敗</span><br><small>請確認 Google 部署權限是否設為「所有人」</small>";
         });
     }
-    load();
+
+    // 每分鐘自動刷新一次
+    setInterval(loadData, 60000);
 </script>
+
 </body>
 </html>
