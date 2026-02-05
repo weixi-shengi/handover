@@ -3,62 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>櫃檯交接系統</title>
+    <title>飯店櫃檯交接系統 - 內部專用</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; }
-        .card { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: #1a73e8; }
-        .box { margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
-        .box-header { padding: 10px; color: white; font-weight: bold; }
-        .bg-orange { background: #f39c12; }
-        .bg-red { background: #e74c3c; }
-        .bg-blue { background: #3498db; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
-        .btn-done { background: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        :root { --primary: #1a73e8; --luggage: #f39c12; --vip: #e74c3c; --repair: #3498db; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f8f9fa; margin: 0; padding: 15px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; margin-top: 0; }
+        #liveTime { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        
+        /* 輸入區域 */
+        .input-group { background: #f1f3f4; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: grid; gap: 10px; grid-template-columns: 1fr 1fr 1fr auto; }
+        input, select { padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+        .add-btn { background: var(--primary); color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* 區塊樣式 */
+        .section { margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .section-header { padding: 10px 15px; font-weight: bold; color: white; display: flex; justify-content: space-between; }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th, td { border-bottom: 1px solid #eee; padding: 12px; text-align: left; font-size: 14px; }
+        th { background: #fafafa; }
+        .del-btn { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        
+        /* 響應式 */
+        @media (max-width: 600px) { .input-group { grid-template-columns: 1fr; } }
     </style>
 </head>
-<body onload="askPass()">
-<div class="card" id="mainContent" style="display:none;">
-    <h1>🏨 櫃檯內部交接看板</h1>
-    <p id="clock" style="text-align:center; color:gray;"></p>
+<body onload="checkPassword()">
 
-    <div class="box">
-        <div class="box-header bg-orange">📦 行李/物品寄放 (取走請按完成)</div>
-        <table>
-            <tr><th>房號</th><th>內容</th><th>動作</th></tr>
-            <tr><td>802</td><td>3件行李，18:00取</td><td><button class="btn-done" onclick="this.parentElement.parentElement.remove()">完成</button></td></tr>
+<div class="container" id="app" style="display:none;">
+    <h1>🏨 飯店櫃檯交接看板</h1>
+    <div id="liveTime"></div>
+
+    <div class="input-group">
+        <input type="text" id="inRoom" placeholder="房號/位置 (例: 802)">
+        <select id="inType">
+            <option value="luggage">📦 行李物品</option>
+            <option value="vip">🌟 VIP需求</option>
+            <option value="repair">🛠️ 維修保養</option>
+        </select>
+        <input type="text" id="inNote" placeholder="詳細內容敘述">
+        <button class="add-btn" onclick="addItem()">新增交接</button>
+    </div>
+
+    <div class="section">
+        <div class="section-header" style="background: var(--luggage);">📦 行李/物品寄放 (取走請刪除)</div>
+        <table id="table-luggage">
+            <tr><th>時間</th><th>房號</th><th>內容</th><th>操作</th></tr>
         </table>
     </div>
 
-    <div class="box">
-        <div class="box-header bg-red">🌟 VIP/特殊需求</div>
-        <table>
-            <tr><th>房號</th><th>需求事項</th></tr>
-            <tr><td>1201</td><td>慶生紅酒、加一對枕頭</td></tr>
+    <div class="section">
+        <div class="section-header" style="background: var(--vip);">🌟 VIP 貴賓 / 特殊需求</div>
+        <table id="table-vip">
+            <tr><th>時間</th><th>房號/型</th><th>需求備註</th><th>操作</th></tr>
         </table>
     </div>
 
-    <div class="box">
-        <div class="box-header bg-blue">🛠️ 維修/保養事項</div>
-        <table>
-            <tr><th>位置</th><th>狀況</th></tr>
-            <tr><td>305房</td><td>空調漏水，維修中</td></tr>
+    <div class="section">
+        <div class="section-header" style="background: var(--repair);">🛠️ 設施維修 / 工程事項</div>
+        <table id="table-repair">
+            <tr><th>位置</th><th>狀況</th><th>進度</th><th>操作</th></tr>
         </table>
     </div>
 </div>
 
 <script>
-    function askPass(){
-        var p = prompt("請輸入櫃檯密碼");
-        if(p === "6666"){
-            document.getElementById('mainContent').style.display='block';
-            document.getElementById('clock').innerText = "最後同步：" + new Date().toLocaleString();
+    // 密碼保護
+    function checkPassword() {
+        var pw = prompt("請輸入櫃檯授權密碼：");
+        if (pw === "6666") { // 你可以修改此密碼
+            document.getElementById('app').style.display = 'block';
+            startTime();
         } else {
-            alert("密碼錯誤");
+            alert("密碼錯誤！");
             window.location.reload();
         }
     }
+
+    // 新增事項邏輯
+    function addItem() {
+        const room = document.getElementById('inRoom').value;
+        const type = document.getElementById('inType').value;
+        const note = document.getElementById('inNote').value;
+        const time = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        if (!room || !note) return alert("請填寫房號與內容！");
+
+        const table = document.getElementById('table-' + type);
+        const row = table.insertRow(-1);
+        
+        row.innerHTML = `
+            <td>${time}</td>
+            <td><b>${room}</b></td>
+            <td>${note}</td>
+            <td><button class="del-btn" onclick="this.parentElement.parentElement.remove()">完成</button></td>
+        `;
+
+        // 清空輸入框
+        document.getElementById('inRoom').value = '';
+        document.getElementById('inNote').value = '';
+    }
+
+    function startTime() {
+        var now = new Date();
+        document.getElementById('liveTime').innerHTML = "目前系統時間：" + now.toLocaleString();
+        setTimeout(startTime, 1000);
+    }
 </script>
+
 </body>
 </html>
