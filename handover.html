@@ -60,7 +60,7 @@
 
 <script>
     // 已更新為你提供的最新網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbz15h7SBgmVGJqQap3_M7w9csOXYr_FuFfGuuUIJ4D872ID742FC8IU3Bn2T1Im8XM6/exec"; 
+    const API_URL = "https://script.google.com/macros/s/AKfycbw3GSeLHhJ3CO9DO-FDvWnKnWl-eslgUh6rsEnJ5-Fp8_j9iiQPoiN6CG1YgzHKp-Xz/exec"; 
 
     // 1. 存檔到雲端
     function saveToCloud() {
@@ -111,7 +111,7 @@
             }
         })
         .catch(() => {
-            document.getElementById('handoverList').innerHTML = '<p class="empty-msg" style="color:red;">連線 API 失敗，請確認 GAS 權限已設為「所有人」並點擊過「部署」</p>';
+            document.getElementById('handoverList').innerHTML = '<p class="empty-msg" style="color:red;">連線 API 失敗，請確認 GAS 權限已設為「所有人」並按過「部署」</p>';
         });
     }
 
