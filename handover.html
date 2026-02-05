@@ -26,11 +26,11 @@
     </select>
     <input type="text" id="note" placeholder="內容">
     <button onclick="send()">發佈到雲端</button>
-    <div id="list" style="margin-top:20px;"><p style="text-align:center;">讀取中...</p></div>
+    <div id="list" style="margin-top:20px;"><p style="text-align:center;">連線中...</p></div>
 </div>
 
 <script>
-    // 這裡貼上你剛才「重新部署」後的最新網址 (結尾必須是 /exec)
+    // 這是根據你提供的 ID 產生的 API 網址，請確認這一行沒有被改動
     const url = "https://script.google.com/macros/s/AKfycbw3GSeLHhJ3CO9DO-FDvWnKnWl-eslgUh6rsEnJ5-Fp8_j9iiQPoiN6CG1YgzHKp-Xz/exec";
 
     function send() {
@@ -38,8 +38,9 @@
         const note = document.getElementById('note').value;
         if(!room || !note) return alert("請填寫內容");
         
-        fetch(url, { method: "POST", body: JSON.stringify({ room, type: document.getElementById('type').value, note }) })
-        .then(() => { alert("已存入雲端！"); location.reload(); });
+        fetch(url, { method: "POST", mode: "no-cors", body: JSON.stringify({ room, type: document.getElementById('type').value, note }) })
+        .then(() => { alert("指令已發送！請檢查試算表。"); location.reload(); })
+        .catch(() => alert("發送失敗，請確認 Google 部署設定"));
     }
 
     function load() {
@@ -49,8 +50,8 @@
             data.reverse().forEach(row => {
                 list.innerHTML += `<div class="item"><span class="time">${row[0]}</span><div class="room">${row[1]} [${row[2]}]</div><div>${row[3]}</div></div>`;
             });
-        }).catch(() => {
-            document.getElementById('list').innerHTML = "連線 API 失敗，請確認 GAS 已選「新版本」並重新部署為「所有人」";
+        }).catch(err => {
+            document.getElementById('list').innerHTML = "<p style='color:red;'>連線 API 失敗</p><small>請確認 Google 部署選「新版本」並設為「所有人」</small>";
         });
     }
     load();
