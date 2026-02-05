@@ -33,9 +33,9 @@
         .empty-msg { text-align: center; color: #999; padding: 20px; }
     </style>
 </head>
-<body onload="checkPass()">
+<body onload="loadData()">
 
-<div class="container" id="app" style="display:none;">
+<div class="container">
     <h1>🏨 櫃檯即時交接看板</h1>
     
     <div class="input-box">
@@ -52,58 +52,72 @@
     </div>
 
     <div id="loading" class="loading">⏳ 同步中...請稍候</div>
-    <div id="handoverList"><p class="empty-msg">正在連線雲端資料庫...</p></div>
+
+    <div id="handoverList">
+        <p class="empty-msg">正在連線雲端資料庫...</p>
+    </div>
 </div>
 
 <script>
-    // 這裡已經填入你截圖中的 API 網址
+    // 你的專屬 API 網址
     const API_URL = "https://script.google.com/macros/s/AKfycbz15h7SBgmVGJqQap3_M7w9csOXYr_FuFfGuuUIJ4D872ID742FC8IU3Bn2T1Im8XM6/exec"; 
 
-    function checkPass() {
-        const pw = prompt("請輸入櫃檯授權密碼：");
-        if (pw === "6666") {
-            document.getElementById('app').style.display = 'block';
-            loadData();
-        } else {
-            alert("密碼錯誤！");
-            window.location.reload();
-        }
-    }
-
+    // 1. 存檔到雲端
     function saveToCloud() {
         const room = document.getElementById('room').value;
         const type = document.getElementById('type').value;
         const note = document.getElementById('note').value;
+
         if (!room || !note) return alert("請填寫房號與內容！");
 
         document.getElementById('loading').style.display = 'block';
+
         fetch(API_URL, {
             method: "POST",
-            body: JSON.stringify({ room, type, note })
+            body: JSON.stringify({ room: room, type: type, note: note })
         })
         .then(() => {
-            alert("同步成功！");
+            alert("交接已成功存入雲端！");
             document.getElementById('room').value = "";
             document.getElementById('note').value = "";
-            loadData();
+            loadData(); // 重新載入列表
         })
+        .catch(err => alert("連線失敗，請確認網路或 API 網址！"))
         .finally(() => document.getElementById('loading').style.display = 'none');
     }
 
+    // 2. 從雲端抓資料
     function loadData() {
-        fetch(API_URL).then(res => res.json()).then(data => {
+        fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
             const list = document.getElementById('handoverList');
-            list.innerHTML = data.length === 0 ? '<p class="empty-msg">目前尚無交接紀錄</p>' : ""; 
+            if (data.length === 0) {
+                list.innerHTML = '<p class="empty-msg">目前尚無交接紀錄</p>';
+                return;
+            }
+            list.innerHTML = ""; 
+            // 從最後一筆開始顯示 (最新的在最上面)
             for (let i = data.length - 1; i >= 0; i--) {
                 const row = data[i];
                 list.innerHTML += `
                     <div class="item-card type-${row[2]}">
-                        <div class="item-info"><span class="room-tag">${row[1]}</span><span class="time-tag">${row[0]}</span></div>
+                        <div class="item-info">
+                            <span class="room-tag">${row[1]}</span>
+                            <span class="time-tag">${row[0]}</span>
+                        </div>
                         <div class="note-text">${row[3]}</div>
                     </div>`;
             }
+        })
+        .catch(() => {
+            document.getElementById('handoverList').innerHTML = '<p class="empty-msg" style="color:red;">連線 API 失敗，請檢查雲端權限是否開啟「任何人」</p>';
         });
     }
+
+    // 每 60 秒自動重新整理一次資料
+    setInterval(loadData, 60000);
 </script>
+
 </body>
 </html>
