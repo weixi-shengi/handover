@@ -3,121 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯雲端交接系統</title>
+    <title>飯店櫃檯交接</title>
     <style>
-        :root { --primary: #1a73e8; --bg: #f0f2f5; }
-        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 15px; }
-        .container { max-width: 700px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        h1 { text-align: center; color: var(--primary); font-size: 1.5rem; margin-top: 0; }
-        
-        /* 輸入區樣式 */
-        .input-box { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; margin-bottom: 25px; }
-        .grid-input { display: grid; gap: 10px; grid-template-columns: 1fr 1fr; margin-bottom: 10px; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        .full-width { grid-column: span 2; }
-        .send-btn { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .send-btn:active { background: #1557b0; transform: scale(0.98); }
-
-        /* 顯示區樣式 */
-        .item-card { border-left: 5px solid #ccc; background: #fff; padding: 12px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .type-luggage { border-left-color: #f39c12; } 
-        .type-vip { border-left-color: #e74c3c; }    
-        .type-repair { border-left-color: #3498db; } 
-        
-        .item-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .room-tag { font-weight: bold; font-size: 1.1rem; color: #333; }
-        .time-tag { font-size: 0.8rem; color: #999; }
-        .note-text { color: #555; font-size: 1rem; line-height: 1.4; }
-        .loading { text-align: center; color: var(--primary); font-weight: bold; display: none; margin: 10px 0; }
-        .empty-msg { text-align: center; color: #999; padding: 20px; }
+        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1a73e8; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
+        .item { background: #fff; border-left: 5px solid #1a73e8; padding: 10px; margin-top: 10px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .room { font-weight: bold; }
+        .time { font-size: 0.8rem; color: #888; float: right; }
     </style>
 </head>
-<body onload="loadData()">
-
+<body>
 <div class="container">
-    <h1>🏨 櫃檯即時交接看板</h1>
-    
-    <div class="input-box">
-        <div class="grid-input">
-            <input type="text" id="room" placeholder="房號/位置 (例: 802)">
-            <select id="type">
-                <option value="luggage">📦 行李物品</option>
-                <option value="vip">🌟 VIP 需求</option>
-                <option value="repair">🛠️ 維修保養</option>
-            </select>
-            <input type="text" id="note" class="full-width" placeholder="請輸入具體交接內容...">
-        </div>
-        <button class="send-btn" onclick="saveToCloud()">發佈並同步雲端</button>
-    </div>
-
-    <div id="loading" class="loading">⏳ 同步中...請稍候</div>
-
-    <div id="handoverList">
-        <p class="empty-msg">正在連線雲端資料庫...</p>
-    </div>
+    <h2>🏨 櫃檯交接看板</h2>
+    <input type="text" id="room" placeholder="房號">
+    <select id="type">
+        <option value="luggage">📦 行李物品</option>
+        <option value="vip">🌟 VIP 需求</option>
+        <option value="repair">🛠️ 維修保養</option>
+    </select>
+    <input type="text" id="note" placeholder="內容">
+    <button onclick="send()">發佈到雲端</button>
+    <div id="list" style="margin-top:20px;"><p style="text-align:center;">讀取中...</p></div>
 </div>
 
 <script>
-    // 已更新為你提供的最新網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbw3GSeLHhJ3CO9DO-FDvWnKnWl-eslgUh6rsEnJ5-Fp8_j9iiQPoiN6CG1YgzHKp-Xz/exec"; 
+    // 這裡貼上你剛才「重新部署」後的最新網址 (結尾必須是 /exec)
+    const url = "https://script.google.com/macros/s/AKfycbw3GSeLHhJ3CO9DO-FDvWnKnWl-eslgUh6rsEnJ5-Fp8_j9iiQPoiN6CG1YgzHKp-Xz/exec";
 
-    // 1. 存檔到雲端
-    function saveToCloud() {
+    function send() {
         const room = document.getElementById('room').value;
-        const type = document.getElementById('type').value;
         const note = document.getElementById('note').value;
-
-        if (!room || !note) return alert("請填寫房號與內容！");
-
-        document.getElementById('loading').style.display = 'block';
-
-        fetch(API_URL, {
-            method: "POST",
-            body: JSON.stringify({ room: room, type: type, note: note })
-        })
-        .then(() => {
-            alert("交接已成功存入雲端！");
-            document.getElementById('room').value = "";
-            document.getElementById('note').value = "";
-            loadData(); // 重新載入列表
-        })
-        .catch(err => alert("連線失敗，請確認 GAS 權限是否開啟「所有人」！"))
-        .finally(() => document.getElementById('loading').style.display = 'none');
+        if(!room || !note) return alert("請填寫內容");
+        
+        fetch(url, { method: "POST", body: JSON.stringify({ room, type: document.getElementById('type').value, note }) })
+        .then(() => { alert("已存入雲端！"); location.reload(); });
     }
 
-    // 2. 從雲端抓資料
-    function loadData() {
-        fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById('handoverList');
-            if (data.length === 0) {
-                list.innerHTML = '<p class="empty-msg">目前尚無交接紀錄</p>';
-                return;
-            }
-            list.innerHTML = ""; 
-            // 從最後一筆開始顯示 (最新的在最上面)
-            for (let i = data.length - 1; i >= 0; i--) {
-                const row = data[i];
-                list.innerHTML += `
-                    <div class="item-card type-${row[2]}">
-                        <div class="item-info">
-                            <span class="room-tag">${row[1]}</span>
-                            <span class="time-tag">${row[0]}</span>
-                        </div>
-                        <div class="note-text">${row[3]}</div>
-                    </div>`;
-            }
-        })
-        .catch(() => {
-            document.getElementById('handoverList').innerHTML = '<p class="empty-msg" style="color:red;">連線 API 失敗，請確認 GAS 權限已設為「所有人」並按過「部署」</p>';
+    function load() {
+        fetch(url).then(res => res.json()).then(data => {
+            const list = document.getElementById('list');
+            list.innerHTML = data.length ? "" : "目前無紀錄";
+            data.reverse().forEach(row => {
+                list.innerHTML += `<div class="item"><span class="time">${row[0]}</span><div class="room">${row[1]} [${row[2]}]</div><div>${row[3]}</div></div>`;
+            });
+        }).catch(() => {
+            document.getElementById('list').innerHTML = "連線 API 失敗，請確認 GAS 已選「新版本」並重新部署為「所有人」";
         });
     }
-
-    // 每 60 秒自動重新整理一次資料
-    setInterval(loadData, 60000);
+    load();
 </script>
-
 </body>
 </html>
