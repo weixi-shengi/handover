@@ -1,2 +1,65 @@
-# handover
-飯店櫃檯內部交接看板
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飯店櫃檯交接系統</title>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; }
+        .card { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #1a73e8; }
+        .box { margin-bottom: 20px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        .box-header { padding: 10px; color: white; font-weight: bold; }
+        .bg-orange { background: #f39c12; }
+        .bg-red { background: #e74c3c; }
+        .bg-blue { background: #3498db; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+        .btn-done { background: #2ecc71; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body onload="askPass()">
+<div class="card" id="mainContent" style="display:none;">
+    <h1>🏨 櫃檯內部交接看板</h1>
+    <p id="clock" style="text-align:center; color:gray;"></p>
+
+    <div class="box">
+        <div class="box-header bg-orange">📦 行李/物品寄放 (取走請按完成)</div>
+        <table>
+            <tr><th>房號</th><th>內容</th><th>動作</th></tr>
+            <tr><td>802</td><td>3件行李，18:00取</td><td><button class="btn-done" onclick="this.parentElement.parentElement.remove()">完成</button></td></tr>
+        </table>
+    </div>
+
+    <div class="box">
+        <div class="box-header bg-red">🌟 VIP/特殊需求</div>
+        <table>
+            <tr><th>房號</th><th>需求事項</th></tr>
+            <tr><td>1201</td><td>慶生紅酒、加一對枕頭</td></tr>
+        </table>
+    </div>
+
+    <div class="box">
+        <div class="box-header bg-blue">🛠️ 維修/保養事項</div>
+        <table>
+            <tr><th>位置</th><th>狀況</th></tr>
+            <tr><td>305房</td><td>空調漏水，維修中</td></tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    function askPass(){
+        var p = prompt("請輸入櫃檯密碼");
+        if(p === "6666"){ // 密碼
+            document.getElementById('mainContent').style.display='block';
+            document.getElementById('clock').innerText = "最後同步：" + new Date().toLocaleString();
+        } else {
+            alert("密碼錯誤");
+            window.location.reload();
+        }
+    }
+</script>
+</body>
+</html>
+
