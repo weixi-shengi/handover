@@ -1,24 +1,23 @@
 function doPost(e) {
   var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
-  var sourceSheet = ss.getSheets()[0]; // 第一個分頁 (待處理)
-  var targetSheet = ss.getSheetByName("已完成"); // 歷史紀錄分頁
+  var sourceSheet = ss.getSheetByName("代辦事項"); 
+  var targetSheet = ss.getSheetByName("已完成"); 
   var params = JSON.parse(e.postData.contents);
 
   if (params.action === "delete") {
     var data = sourceSheet.getDataRange().getValues();
     for (var i = data.length - 1; i >= 1; i--) {
-      // 比對時間戳記 ID
       if (data[i][0].toString() === params.id.toString()) {
         var rowData = data[i];
-        rowData.push(new Date().toLocaleString() + " (已完成)"); 
-        targetSheet.appendRow(rowData); // 搬移到歷史紀錄
-        sourceSheet.deleteRow(i + 1);  // 從待處理刪除
+        rowData.push(new Date().toLocaleString() + " (已處理)"); 
+        targetSheet.appendRow(rowData); // 搬移到「已完成」分頁
+        sourceSheet.deleteRow(i + 1);  // 從「代辦事項」刪除看板紀錄
         break;
       }
     }
     return ContentService.createTextOutput("Moved").setMimeType(ContentService.MimeType.TEXT);
   } else {
-    // 新增資料到待處理
+    // 新增資料到「代辦事項」
     sourceSheet.appendRow([
       new Date().toLocaleString(), 
       params.room,                 
@@ -31,15 +30,14 @@ function doPost(e) {
 
 function doGet(e) {
   var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
-  // 根據網頁參數決定讀取哪一個分頁
   var mode = e.parameter.mode || "current";
-  var sheet = (mode === "history") ? ss.getSheetByName("已完成") : ss.getSheets()[0];
+  // 根據網頁指令讀取不同分頁
+  var sheet = (mode === "history") ? ss.getSheetByName("已完成") : ss.getSheetByName("代辦事項");
   
   var data = sheet.getDataRange().getValues();
   if (data.length > 1) { 
     data.shift(); 
-    // 歷史模式只取最近 50 筆
-    if (mode === "history") data = data.slice(-50);
+    if (mode === "history") data = data.slice(-50); // 歷史模式只取最近 50 筆，維持速度
   } else { 
     data = []; 
   }
