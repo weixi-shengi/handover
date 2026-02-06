@@ -3,57 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯交接看板</title>
+    <title>飯店櫃檯智慧交接看板 V4</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --orange: #e67e22; }
-        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
-        label { display: block; margin-top: 12px; font-size: 14px; color: #555; font-weight: bold; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
-        button:active { transform: scale(0.98); }
-        .shuttle-only { background: #fffcf0; padding: 12px; border-radius: 8px; border: 1px solid #f9e4ad; margin-top: 10px; display: none; }
-        .tab-box { display: flex; gap: 8px; margin: 20px 0 10px 0; }
-        .tab-btn { flex: 1; padding: 12px; font-size: 14px; background: #eee; border-radius: 8px; border: none; cursor: pointer; }
+        :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bg: #f0f2f5; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { text-align: center; color: var(--normal); margin-bottom: 20px; }
+        label { display: block; margin-top: 12px; font-size: 13px; color: #555; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; outline: none; }
+        button { width: 100%; padding: 14px; margin-top: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
+        .btn-send { background: var(--normal); color: white; }
+        .btn-send:active { background: #1557b0; }
+        
+        /* 顏色與狀態樣式 */
+        .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
+        .p-important { border-left-color: var(--important); background: #fffcf0; }
+        .p-normal { border-left-color: var(--normal); }
+        
+        /* 今天事項的提醒邊框 */
+        .today-alert { border: 2px solid var(--urgent); box-shadow: 0 0 10px rgba(255, 77, 77, 0.3); }
+        .today-badge { background: var(--urgent); color: white; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 5px; }
+
+        .shuttle-box { background: #fef9e7; padding: 12px; border-radius: 8px; border: 1px solid #f9e4ad; margin-top: 10px; display: none; }
+        .tab-box { display: flex; gap: 8px; margin: 20px 0; }
+        .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: #607d8b; color: white; }
-        .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-        .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); color: white; border-radius: 4px; border: none; }
-        .history-tag { color: var(--success); font-size: 11px; margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
+        
+        .btn-line { background: #00b900; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 8px; display: inline-block; text-decoration: none; border-radius: 4px; }
+        .btn-done { position: absolute; right: 10px; top: 10px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 飯店櫃檯交接看板</h2>
+    <h2>🏨 櫃檯智慧交接系統</h2>
     
     <div id="inputSection">
-        <label>📅 預計日期</label>
+        <label>👤 發佈交接人員</label>
+        <select id="staff">
+            <option value="LILLI">LILLI (經理)</option>
+            <option value="TINO">TINO (主任)</option>
+            <option value="SUE">SUE (副主任)</option>
+            <option value="LUCIEN">LUCIEN (專員)</option>
+            <option value="MONA">MONA (專員)</option>
+            <option value="XI">XI (專員)</option>
+            <option value="ALLEN">ALLEN (主任)</option>
+            <option value="ERIC">ERIC (專員)</option>
+            <option value="歐陽商吉">歐陽商吉 (救生員)</option>
+        </select>
+
+        <label>📅 預計處理日期</label>
         <input type="date" id="targetDate">
         
-        <label>📍 房號 / 位置</label>
-        <input type="text" id="room" placeholder="輸入房號或地點">
-        
         <label>📑 交接類別</label>
-        <select id="type" onchange="toggleShuttle()">
-            <option value="📦 行李寄放/提取">📦 行李寄放/提取</option>
-            <option value="🚗 接駁服務">🚗 接駁服務</option>
-            <option value="🌟 VIP/特別需求">🌟 VIP/特別需求</option>
-            <option value="🛠️ 客房維修報修">🛠️ 客房維修報修</option>
-            <option value="🧹 清潔服務">🧹 清潔服務</option>
+        <select id="type" onchange="checkType()">
+            <option value="📦 行李物品">📦 行李物品 (寄放/遺失物/包裹)</option>
+            <option value="🚗 接駁服務">🚗 接駁服務 (火車站/機場)</option>
+            <option value="🛠️ 維修報修">🛠️ 維修報修 (客房設備損壞)</option>
+            <option value="🌟 VIP需求">🌟 VIP需求 (壽星/紀念日/特別交代)</option>
+            <option value="🧹 清潔服務">🧹 清潔服務 (大清/開床/備品)</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
 
-        <div id="shuttleBox" class="shuttle-only">
-            <label>👤 接駁人員姓名</label>
-            <input type="text" id="driver" placeholder="填寫負責同事">
+        <div id="shuttleBox" class="shuttle-box">
+            <label>📍 接駁地點</label>
+            <select id="location">
+                <option value="台東火車站">🚉 台東火車站</option>
+                <option value="台東機場">✈️ 台東機場</option>
+                <option value="知本火車站">🚂 知本火車站</option>
+                <option value="其他地點">📍 其他地點</option>
+            </select>
+            <label>👥 乘車人數</label>
+            <input type="number" id="people" placeholder="例如: 4">
             <label>🕒 抵達/班次時間</label>
             <input type="text" id="arrivalTime" placeholder="例如: 14:30 (408次)">
+            <label>👤 負責司機/同事</label>
+            <input type="text" id="driver" placeholder="填寫負責人姓名">
         </div>
 
-        <label>📝 內容說明</label>
-        <input type="text" id="note" placeholder="詳細交代事項...">
-        <button onclick="saveToCloud()">發佈看板</button>
+        <label>📍 房號 / 位置</label>
+        <input type="text" id="room" placeholder="例如: 802">
+
+        <label>📝 詳細說明</label>
+        <textarea id="note" rows="2" placeholder="請詳細寫下需要注意的事項..."></textarea>
+        
+        <button class="btn-send" onclick="save()">發佈至看板</button>
     </div>
 
     <div class="tab-box">
@@ -61,86 +96,103 @@
         <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
-    <div id="handoverList"></div>
+    <div id="list"></div>
 </div>
 
 <script>
     // 已更新為你提供的最新 API 網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbzw0xAsWTU7q2PyuK3WC3XnaRQ5S6MW-q7f5putbbbHHNsTo2TO5ljQHd-Qj_TDzl6v/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby8-66_OZQakC94EvsfbvsCtTla-7KLLtzVdyWJoi_HA5h4SQRz5EQ3iQi8zPxRdxof/exec";
 
-    // 根據類別切換接駁欄位顯示
-    function toggleShuttle() {
-        const isShuttle = document.getElementById('type').value === '🚗 接駁服務';
-        document.getElementById('shuttleBox').style.display = isShuttle ? 'block' : 'none';
+    function checkType() {
+        const type = document.getElementById('type').value;
+        document.getElementById('shuttleBox').style.display = (type === '🚗 接駁服務') ? 'block' : 'none';
     }
 
-    // 發佈到雲端
-    function saveToCloud() {
+    // 自動判定緊急程度
+    function getPriority(type) {
+        if (type.includes('維修') || type.includes('VIP')) return 'urgent'; // 紅色
+        if (type.includes('接駁')) return 'important'; // 橘色
+        return 'normal'; // 藍色
+    }
+
+    function save() {
         const date = document.getElementById('targetDate').value;
         const room = document.getElementById('room').value;
         const note = document.getElementById('note').value;
-        if(!date || !room || !note) return alert("請完整填寫日期、位置與內容！");
+        const type = document.getElementById('type').value;
+        if(!date || !room || !note) return alert("請完整填寫日期、位置與說明");
+
+        const shuttleDetail = (type === '🚗 接駁服務') ? 
+            `${document.getElementById('location').value} / ${document.getElementById('people').value}人` : '';
 
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ 
-                action: "add", 
-                date, room, note,
-                type: document.getElementById('type').value,
+                action: "add", date, room, note, type,
+                staff: document.getElementById('staff').value,
+                priority: getPriority(type),
+                shuttleDetail: shuttleDetail,
                 driver: document.getElementById('driver').value,
                 arrivalTime: document.getElementById('arrivalTime').value
             })
         }).then(() => {
-            alert("已同步至雲端！");
-            location.reload(); // 重新整理清空欄位並刷新列表
+            alert("發佈成功！");
+            location.reload();
         });
     }
 
-    // 處理完成（移動至歷史紀錄）
-    function deleteItem(id) {
-        if(!confirm("確定已處理完成？")) return;
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "delete", id: id })
-        }).then(() => {
-            setTimeout(() => loadData('current'), 1000);
-        });
+    function shareLine(text) {
+        const url = `https://line.me/R/msg/text/?${encodeURIComponent(text)}`;
+        window.open(url);
     }
 
-    // 讀取資料
     function loadData(mode) {
         document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
 
-        const listArea = document.getElementById('handoverList');
-        listArea.innerHTML = "<p style='text-align:center; color:#999;'>讀取雲端資料中...</p>";
+        const area = document.getElementById('list');
+        area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
 
-        fetch(`${API_URL}?mode=${mode}`)
-        .then(res => res.json())
-        .then(data => {
-            listArea.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
+        fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
+            area.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
             data.reverse().forEach(row => {
-                const isHist = (mode === 'history');
-                const shuttleMsg = row[5] ? `<div style="color:var(--orange); font-size:13px; font-weight:bold; margin-top:4px;">👤 接駁員: ${row[5]} | 🕒 ${row[6]}</div>` : '';
+                const isH = (mode === 'history');
+                const today = new Date().toISOString().split('T')[0];
+                const isToday = (row[1] === today && !isH);
                 
-                listArea.innerHTML += `
-                    <div class="item" style="${isHist ? 'border-left-color:#999; opacity:0.8;' : ''}">
-                        <div style="font-size:12px; color:var(--primary); font-weight:bold;">📅 預計日期: ${row[1]}</div>
-                        <div style="display:flex; justify-content:space-between; margin-top:3px;">
-                            <span style="font-weight:bold;">${row[3]} <small style="font-weight:normal;">[${row[2]}]</small></span>
-                            <span style="font-size:10px; color:#888;">${row[0]}</span>
+                // 整理 Line 轉發文字內容
+                let lineMsg = `🏨【${row[2]}】\n📍位置：${row[4]}\n📝內容：${row[5]}\n📅預計：${row[1]}\n👤發佈人：${row[6]}`;
+                if(row[8]) lineMsg += `\n🚗接駁：${row[8]}\n🕒時間：${row[9]}\n👤負責：${row[7]}`;
+
+                area.innerHTML += `
+                    <div class="card p-${row[3]} ${isToday ? 'today-alert' : ''}">
+                        <div style="font-size:11px; color:#666;">
+                            📅 預計日期: <b>${row[1]}</b> ${isToday ? '<span class="today-badge">⚠️ 今天</span>' : ''}
+                            <span style="float:right;">發佈: ${row[6]}</span>
                         </div>
-                        ${shuttleMsg}
-                        <div style="margin-top:5px; font-size:15px;">${row[4]}</div>
-                        ${isHist ? `<div class="history-tag">✅ ${row[7] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
+                        <div style="font-weight:bold; margin-top:5px; font-size:17px;">
+                            ${row[4]} <small>[${row[2]}]</small>
+                        </div>
+                        ${row[8] ? `<div style="color:var(--orange); font-size:13px; font-weight:bold; margin-top:5px;">🚗 ${row[8]} | 負責: ${row[7]} | 🕒 ${row[9]}</div>` : ''}
+                        <div style="margin-top:8px; color:#333; line-height:1.4;">${row[5]}</div>
+                        <div style="font-size:10px; color:#999; margin-top:10px;">系統紀錄: ${row[0]}</div>
+                        
+                        ${isH ? '' : `
+                            <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
+                            <button class="btn-line" onclick="shareLine('${lineMsg}')">分享至 LINE</button>
+                        `}
                     </div>`;
             });
         });
     }
-</script>
 
+    function deleteItem(id) {
+        if(!confirm("確定已處理完成？")) return;
+        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) })
+        .then(() => setTimeout(() => loadData('current'), 1000));
+    }
+</script>
 </body>
 </html>
