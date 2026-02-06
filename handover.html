@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯智慧交接看板 V4.3</title>
+    <title>飯店櫃檯智慧交接看板 V5.1</title>
     <style>
-        :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bg: #f0f2f5; }
+        :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bed: #9c27b0; --carpet: #455a64; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
         h2 { text-align: center; color: var(--normal); margin-bottom: 20px; }
@@ -14,34 +14,43 @@
         button { width: 100%; padding: 14px; margin-top: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
         .btn-send { background: var(--normal); color: white; }
         
-        /* 卡片設計 */
+        /* 篩選器樣式 */
+        .filter-box { margin-bottom: 15px; background: #e3f2fd; padding: 12px; border-radius: 10px; border: 1px solid #bbdefb; }
+        
+        /* 卡片顏色區分 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
         .p-important { border-left-color: var(--important); background: #fffcf0; }
         .p-normal { border-left-color: var(--normal); }
+        .p-bed { border-left-color: var(--bed); background: #fdf2ff; }
+        .p-carpet { border-left-color: var(--carpet); background: #eceff1; }
         
-        /* 資訊佈局：防止遮擋 */
-        .card-meta { font-size: 11px; color: #666; margin-bottom: 8px; padding-right: 75px; line-height: 1.5; }
-        .meta-item { display: block; }
-        .today-alert { border: 2px solid var(--urgent); }
+        .status-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; margin-bottom: 8px; }
+        .tag-checkin { background: #e91e63; } 
+        .tag-vacant { background: #4caf50; } 
+        .tag-split { background: #607d8b; } 
+        .tag-carpet { background: #455a64; }
 
-        .shuttle-box { background: #fef9e7; padding: 12px; border-radius: 8px; border: 1px solid #f9e4ad; margin-top: 10px; display: none; }
+        .extra-box { background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #eee; margin-top: 10px; display: none; }
+        .bed-box { background: #fdf2ff; border-color: #e1bee7; }
+        .carpet-box { background: #eceff1; border-color: #cfd8dc; }
+
         .tab-box { display: flex; gap: 8px; margin: 20px 0; }
         .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: #607d8b; color: white; }
         
-        .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; text-align: center; }
-        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
-        .btn-clear { background: #666; color: white; padding: 6px 12px; font-size: 11px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; float: right; margin-top: 5px; }
+        .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; }
+        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; border-radius: 5px; border:none; cursor:pointer; }
+        .btn-clear { background: #666; color: white; padding: 6px 12px; font-size: 11px; width: auto; border-radius: 5px; border:none; cursor:pointer; float: right; margin-top: 5px; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 櫃檯智慧交接系統</h2>
+    <h2>🏨 飯店智慧交接系統 V5.1</h2>
     
     <div id="inputSection">
-        <label>👤 發佈交接人員</label>
+        <label>👤 發佈人員</label>
         <select id="staff">
             <option value="LILLI經理">LILLI 經理</option>
             <option value="TINO主任">TINO 主任</option>
@@ -54,64 +63,78 @@
             <option value="歐陽酉吉救生員">歐陽酉吉 救生員</option>
         </select>
 
-        <label>📅 預計處理日期</label>
+        <label>📅 預計日期</label>
         <input type="date" id="targetDate">
         
         <label>📑 交接類別</label>
         <select id="type" onchange="checkType()">
             <option value="📦 行李物品">📦 行李物品</option>
             <option value="🚗 接駁服務">🚗 接駁服務</option>
+            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
+            <option value="🧹 洗地毯保養">🧹 洗地毯保養</option>
             <option value="🛠️ 維修報修">🛠️ 維修報修</option>
             <option value="🌟 VIP需求">🌟 VIP需求</option>
             <option value="🧹 清潔服務">🧹 清潔服務</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
 
-        <div id="shuttleBox" class="shuttle-box">
-            <label>📍 接駁地點</label>
-            <select id="location">
-                <option value="台東火車站">🚉 台東火車站</option>
-                <option value="台東機場">✈️ 台東機場</option>
-                <option value="知本火車站">🚂 知本火車站</option>
-                <option value="其他地點">📍 其他地點</option>
+        <div id="bedBox" class="extra-box bed-box">
+            <label>🛏️ 床型狀態</label>
+            <select id="bedStatus">
+                <option value="【預進使用】">🔴 【預進使用】(已有訂單)</option>
+                <option value="【空房可賣】">🟢 【空房可賣】(已併好待售)</option>
+                <option value="【需拆除】">⚪ 【需拆除】(恢復雙單床)</option>
             </select>
-            <label>👥 人數</label>
-            <input type="number" id="people" placeholder="例如: 2">
-            <label>🕒 時間/班次</label>
-            <input type="text" id="arrivalTime" placeholder="例如: 1430 (408次)">
-            <label>👤 負責人</label>
-            <input type="text" id="driver" placeholder="填寫負責人姓名">
+        </div>
+
+        <div id="carpetBox" class="extra-box carpet-box">
+            <label>🏢 保養樓層</label>
+            <select id="floor">
+                <option value="2樓">2樓</option><option value="3樓">3樓</option>
+                <option value="4樓">4樓</option><option value="5樓">5樓</option>
+                <option value="6樓">6樓</option><option value="7樓">7樓</option>
+                <option value="8樓">8樓</option><option value="9樓">9樓</option>
+                <option value="全棟">全棟</option>
+            </select>
         </div>
 
         <label>📍 房號 / 位置</label>
-        <input type="text" id="room" placeholder="例如: 8002">
+        <input type="text" id="room" placeholder="例如: 8F全層 或 8002">
 
         <label>📝 詳細說明</label>
-        <textarea id="note" rows="2" placeholder="請詳細敘述..."></textarea>
+        <textarea id="note" rows="2" placeholder="請填寫詳細內容..."></textarea>
         
-        <button class="btn-send" onclick="save()">發佈至看板</button>
+        <button class="btn-send" onclick="save()">發佈交接事項</button>
     </div>
 
     <div class="tab-box">
-        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理事項</button>
+        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理看板</button>
         <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
+    </div>
+
+    <div class="filter-box" id="filterContainer">
+        <label>🔍 快速搜尋分類：</label>
+        <select id="categoryFilter" onchange="filterList()">
+            <option value="全部">全部事項 (顯示所有)</option>
+            <option value="🛏️ 拆併床服務">🛏️ 只看：拆併床狀態</option>
+            <option value="🧹 洗地毯保養">🧹 只看：洗地毯進度</option>
+            <option value="🛠️ 維修報修">🛠️ 只看：維修報修</option>
+            <option value="🚗 接駁服務">🚗 只看：接駁預約</option>
+            <option value="📦 行李物品">📦 只看：行李/物品</option>
+        </select>
     </div>
 
     <div id="list"></div>
 </div>
 
 <script>
-    // 使用最新產生的 API 網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbwOSr566D6tH3tO21ssw2f677g3yOKSHlgkJvEk_YioxTnHfPWXeFgFIzVKNh2mZGPd/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwCw5NDduAC_AmM2HQEMYgz-30MpexUszhPs7DVXntBi0qaAD5iy-1p8MRaiK_-cB3N/exec";
+    let allEvents = [];
 
     function checkType() {
-        document.getElementById('shuttleBox').style.display = (document.getElementById('type').value === '🚗 接駁服務') ? 'block' : 'none';
-    }
-
-    function getPriority(type) {
-        if (type.includes('維修') || type.includes('VIP')) return 'urgent';
-        if (type.includes('接駁')) return 'important';
-        return 'normal';
+        const type = document.getElementById('type').value;
+        document.getElementById('bedBox').style.display = (type === '🛏️ 拆併床服務') ? 'block' : 'none';
+        document.getElementById('carpetBox').style.display = (type === '🧹 洗地毯保養') ? 'block' : 'none';
     }
 
     function save() {
@@ -119,65 +142,92 @@
         const room = document.getElementById('room').value;
         const note = document.getElementById('note').value;
         const type = document.getElementById('type').value;
-        if(!date || !room || !note) return alert("請填寫日期、位置與內容");
+        if(!date || !room || !note) return alert("請填寫日期、房號與內容");
 
-        const shuttleDetail = (type === '🚗 接駁服務') ? `${document.getElementById('location').value} / ${document.getElementById('people').value}人` : '';
+        let priority = 'normal';
+        let customStatus = '';
+
+        if(type === '🛏️ 拆併床服務') {
+            priority = 'bed';
+            customStatus = document.getElementById('bedStatus').value;
+        } else if(type === '🧹 洗地毯保養') {
+            priority = 'carpet';
+            customStatus = '【樓層保養：' + document.getElementById('floor').value + '】';
+        } else if(type.includes('維修') || type.includes('VIP')) {
+            priority = 'urgent';
+        }
 
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ 
-                action: "add", date, room, note, type,
+                action: "add", date, room, note, type, priority,
                 staff: document.getElementById('staff').value,
-                priority: getPriority(type),
-                shuttleDetail: shuttleDetail,
-                driver: document.getElementById('driver').value,
-                arrivalTime: document.getElementById('arrivalTime').value
+                bedStatus: customStatus
             })
-        }).then(() => { alert("發佈成功！"); location.reload(); });
+        }).then(() => { alert("已發佈交接！"); location.reload(); });
     }
 
     function loadData(mode) {
         document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
+        document.getElementById('filterContainer').style.display = (mode === 'current') ? 'block' : 'none';
 
         const area = document.getElementById('list');
         area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
 
         fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
-            area.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
-            data.reverse().forEach(row => {
-                const isH = (mode === 'history');
-                const today = new Date().toISOString().split('T')[0];
-                const displayDate = row[1].split('T')[0];
-                const isToday = (displayDate === today && !isH);
-                
-                let lineMsg = `🏨【飯店交接】\n📌類別：${row[2]}\n📍位置：${row[4]}\n📝說明：${row[5]}\n📅預計：${displayDate}\n👤發佈：${row[6]}`;
-                if(row[8]) lineMsg += `\n🚗接駁：${row[8]}\n🕒時間：${row[9]}\n👤負責：${row[7]}`;
-                const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
+            allEvents = data;
+            renderList(data, mode);
+        });
+    }
 
-                area.innerHTML += `
-                    <div class="card p-${row[3]} ${isToday ? 'today-alert' : ''}">
-                        <div class="card-meta">
-                            <span class="meta-item">📅 預計日期: ${displayDate}</span>
-                            <span class="meta-item">👤 發佈人員: ${row[6]}</span>
-                        </div>
-                        <div style="font-weight:bold; font-size:17px; margin-bottom:5px;">
-                            ${row[4]} <small>[${row[2]}]</small>
-                        </div>
-                        ${row[8] ? `<div style="color:var(--important); font-size:13px; font-weight:bold; margin-bottom:5px;">🚗 ${row[8]} | 負責: ${row[7]} | 🕒 ${row[9]}</div>` : ''}
-                        <div style="margin-top:5px; color:#333; line-height:1.4;">${row[5]}</div>
-                        <div style="font-size:10px; color:#999; margin-top:10px;">系統序號: ${row[0]}</div>
-                        
-                        ${isH ? `
-                            <button class="btn-clear" onclick="clearHistory('${row[0]}')">🗑️ 永久刪除紀錄</button>
-                        ` : `
-                            <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
-                        `}
-                    </div>`;
-            });
+    function filterList() {
+        const filterValue = document.getElementById('categoryFilter').value;
+        if (filterValue === "全部") {
+            renderList(allEvents, 'current');
+        } else {
+            const filtered = allEvents.filter(row => row[2] === filterValue);
+            renderList(filtered, 'current');
+        }
+    }
+
+    function renderList(data, mode) {
+        const area = document.getElementById('list');
+        const isH = (mode === 'history');
+        area.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無交接紀錄</p>";
+        
+        data.slice().reverse().forEach(row => {
+            const displayDate = row[1].split('T')[0];
+            let tagHtml = "";
+            
+            if(row[10]) {
+                let tagClass = "tag-carpet";
+                if(row[10].includes('預進')) tagClass = "tag-checkin";
+                else if(row[10].includes('空房')) tagClass = "tag-vacant";
+                else if(row[10].includes('拆除')) tagClass = "tag-split";
+                tagHtml = `<span class="status-tag ${tagClass}">${row[10]}</span>`;
+            }
+
+            let lineMsg = `🏨【飯店交接】\n📌類別：${row[2]}\n📍位置：${row[4]}\n📝說明：${row[5]}\n📅日期：${displayDate}`;
+            if(row[10]) lineMsg += `\n⚠️狀態：${row[10]}`;
+            const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
+
+            area.innerHTML += `
+                <div class="card p-${row[3]}">
+                    ${tagHtml}
+                    <div style="font-size:11px; color:#666;">📅 ${displayDate} | 👤 ${row[6]}</div>
+                    <div style="font-weight:bold; font-size:17px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
+                    <div style="margin-top:8px; color:#333; line-height:1.4; white-space: pre-wrap;">${row[5]}</div>
+                    
+                    ${isH ? `
+                        <button class="btn-clear" onclick="clearHistory('${row[0]}')">🗑️ 永久刪除</button>
+                    ` : `
+                        <button class="btn-done" onclick="deleteItem('${row[0]}')">完成處理</button>
+                        <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
+                    `}
+                </div>`;
         });
     }
 
@@ -188,7 +238,7 @@
     }
 
     function clearHistory(id) {
-        if(!confirm("⚠️ 永久刪除此筆歷史紀錄且不可還原，確定嗎？")) return;
+        if(!confirm("永久刪除紀錄且不可還原，確定嗎？")) return;
         fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "clear_history", id }) })
         .then(() => setTimeout(() => loadData('history'), 1000));
     }
