@@ -27,7 +27,6 @@
         .carpet-grid input { padding: 5px; font-size: 12px; }
 
         .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
-        
         .tab-box { display: flex; gap: 8px; margin: 15px 0; }
         .tab-btn { flex: 1; padding: 12px; background: #eee; font-size: 14px; }
         .tab-btn.active { background: #607d8b; color: white; }
@@ -35,7 +34,6 @@
         .btn-edit { background: #ff9800; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; }
         .btn-line { background: #00b900; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; margin-right: 5px; }
         .btn-batch { background: #ff4d4d; color: white; width: 100%; padding: 15px; margin-top: 25px; }
-
         .search-box { background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #bbdefb; }
     </style>
 </head>
@@ -109,8 +107,8 @@
         <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
-    <div class="search-box" id="searchArea">
-        <label>🔍 分類快速篩選：</label>
+    <div class="search-box">
+        <label>🔍 分類篩選：</label>
         <select id="categoryFilter" onchange="filterData()">
             <option value="全部">全部事項</option>
             <option value="📦 行李物品">📦 行李物品</option>
@@ -122,21 +120,17 @@
     </div>
 
     <div id="listArea"></div>
+    
     <button id="batchDelBtn" class="btn-batch" style="display:none;" onclick="batchDelete()">🗑️ 一鍵清空所有歷史紀錄</button>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyGjqCw-cOZ0HAGZEKO3UbnHg3Kz7wcyhWWZybnPw3Md_uW9cT81CzwdcHZEVMPytfM/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbzbtz04HVrWWxPjgL1J4oPFs00t4B9HX73tsY2B63daQgLUHXJHqg1r5jhfWf8AzD5o/exec";
     let allData = [];
 
     const carpetGridRows = document.getElementById('carpetGridRows');
     for(let i=2; i<=9; i++){
-        carpetGridRows.innerHTML += `
-            <div class="carpet-grid">
-                <span>${i}F</span>
-                <input type="date" id="p_date_${i}F">
-                <input type="date" id="d_date_${i}F">
-            </div>`;
+        carpetGridRows.innerHTML += `<div class="carpet-grid"><span>${i}F</span><input type="date" id="p_date_${i}F"><input type="date" id="d_date_${i}F"></div>`;
     }
 
     function checkType() {
@@ -163,23 +157,17 @@
             priority = 'bed';
         } else if(type === '🧹 洗地毯保養') {
             priority = 'carpet';
-            room = "洗地毯保養行程表";
-            let cPlan = "【樓層保養進度】\n";
+            room = "洗地毯行程進度";
+            let cPlan = "【保養表】\n";
             for(let i=2; i<=9; i++){
                 let p = document.getElementById('p_date_'+i+'F').value;
                 let d = document.getElementById('d_date_'+i+'F').value;
                 if(p || d) cPlan += `${i}F: (預)${p||'--'} (完)${d||'--'}\n`;
             }
             note = cPlan + note;
-        } else if(type.includes('維修')) {
-            priority = 'urgent';
-        }
+        } else if(type.includes('維修')) { priority = 'urgent'; }
 
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value })
-        }).then(() => { alert("交接事項已發佈！"); location.reload(); });
+        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value }) }).then(() => { alert("已發佈！"); location.reload(); });
     }
 
     function loadData(mode) {
@@ -187,63 +175,39 @@
         document.getElementById('btnH').className = (mode === 'history' ? 'tab-btn active' : 'tab-btn');
         document.getElementById('inputSection').style.display = (mode === 'current' ? 'block' : 'none');
         document.getElementById('batchDelBtn').style.display = (mode === 'history' ? 'block' : 'none');
-
         const area = document.getElementById('listArea');
         area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
-
-        fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
-            allData = data;
-            filterData(mode);
-        });
+        fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => { allData = data; filterData(mode); }).catch(err => { area.innerHTML = "<p style='text-align:center;'>讀取連線中...</p>"; });
     }
 
     function filterData(mode = 'current') {
         const filter = document.getElementById('categoryFilter').value;
         const area = document.getElementById('listArea');
         area.innerHTML = "";
-        
         allData.slice().reverse().forEach(row => {
             if(filter !== "全部" && row[2] !== filter) return;
             const isH = (mode === 'history' || row[11]); 
-            const lineText = `🏨【${row[2]}交接】\n📍位置：${row[4]}\n📅日期：${row[1]}\n👤發佈：${row[6]}\n📝內容：\n${row[5]}`;
+            // 需求 9: 單筆手動 Line 分享
+            const lineText = `🏨【${row[2]}交接】\n📍房號：${row[4]}\n📅日期：${row[1]}\n📝內容：\n${row[5]}`;
             const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
-
             area.innerHTML += `
                 <div class="card p-${row[3]}">
                     <div style="font-size:11px; color:#666;">📅 ${row[1]} | 👤 ${row[6]}</div>
                     <div style="font-weight:bold; font-size:16px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
                     <div style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
-                    ${!isH ? `
-                        <button class="btn-done" onclick="finishItem('${row[0]}')">完成</button>
-                        <a href="${lineUrl}" class="btn-line" target="_blank">分享至 LINE</a>
-                        <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容</button>
-                    ` : `<div style="color:green; font-size:11px; margin-top:10px;">✅ 已處理完成</div>`}
+                    ${!isH ? `<button class="btn-done" onclick="finishItem('${row[0]}')">完成</button><a href="${lineUrl}" class="btn-line" target="_blank">分享至 LINE</a><button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容</button>` : `<div style="color:green; font-size:11px; margin-top:10px;">✅ 已處理完成</div>`}
                 </div>`;
         });
     }
 
-    function editItem(id, oldRoom, oldNote) {
-        const nR = prompt("修改位置或行程標題:", oldRoom);
-        const nN = prompt("修改詳細說明內容:", oldNote);
-        if (nR !== null && nN !== null) {
-            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom: nR, newNote: nN }) }).then(() => location.reload());
-        }
+    function editItem(id, r, n) {
+        const nR = prompt("修改房號/標題:", r);
+        const nN = prompt("修改詳細內容 (建議複製地毯進度後修改日期):", n);
+        if (nR !== null && nN !== null) fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom: nR, newNote: nN }) }).then(() => location.reload());
     }
 
-    function finishItem(id) {
-        if(confirm("確定該事項已處理完成？")) {
-            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload());
-        }
-    }
-
-    function batchDelete() {
-        if(confirm("⚠️ 注意：這將永久刪除所有歷史紀錄，確定嗎？")) {
-            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_delete_history" }) }).then(() => {
-                alert("歷史紀錄已清空");
-                location.reload();
-            });
-        }
-    }
+    function finishItem(id) { if(confirm("確定完成？")) fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload()); }
+    function batchDelete() { if(confirm("警告：這將清空所有歷史紀錄，確定嗎？")) fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_delete_history" }) }).then(() => location.reload()); }
 </script>
 </body>
 </html>
