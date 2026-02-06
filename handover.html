@@ -1,104 +1,47 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯交接系統</title>
-    <style>
-        :root { --primary: #1a73e8; --success: #34a853; }
-        body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button:active { transform: scale(0.98); }
-        .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-        .item-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; padding-right: 65px; }
-        .time { font-size: 0.75rem; color: #888; font-weight: normal; }
-        .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); border-radius: 4px; margin-top: 0; }
-    </style>
-</head>
-<body onload="loadData()">
+function doPost(e) {
+  var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
+  var sourceSheet = ss.getSheets()[0]; // 第一個分頁 (待處理)
+  var targetSheet = ss.getSheetByName("已完成"); // 歷史紀錄分頁
+  var params = JSON.parse(e.postData.contents);
 
-<div class="container">
-    <h2>🏨 櫃檯交接任務</h2>
-    <input type="text" id="room" placeholder="房號 / 位置">
-    <select id="type">
-        <option value="📦 行李寄放/提取">📦 行李寄放/提取</option>
-        <option value="🌟 VIP/特別需求">🌟 VIP/特別需求</option>
-        <option value="🛠️ 客房維修報修">🛠️ 客房維修報修</option>
-        <option value="🛏️ 補發備品/毛巾">🛏️ 補發備品/毛巾</option>
-        <option value="🧹 清潔/開床服務">🧹 清潔/開床服務</option>
-        <option value="🚗 叫車/接送預約">🚗 叫車/接送預約</option>
-        <option value="🍴 訂餐/早安叫醒">🍴 訂餐/早安叫醒</option>
-        <option value="📢 其他事項">📢 其他事項</option>
-    </select>
-    <input type="text" id="note" placeholder="請輸入詳細交接內容...">
-    <button onclick="saveToCloud()">發佈任務</button>
-    
-    <div id="handoverList" style="margin-top:20px;">
-        <p style="text-align:center; color:#999;">正在連線雲端資料庫...</p>
-    </div>
-</div>
-
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbw61Z_vSaj7wVTehSIRLFHCYeW-tzxToL_iZNbDD8fSO9kUQnaC2IbqqT5e25rs_qU7/exec";
-
-    function saveToCloud() {
-        const room = document.getElementById('room').value;
-        const note = document.getElementById('note').value;
-        if(!room || !note) return alert("請填寫房號與內容");
-
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "add", room: room, type: document.getElementById('type').value, note: note })
-        }).then(() => {
-            document.getElementById('room').value = "";
-            document.getElementById('note').value = "";
-            alert("交接已發佈！");
-            setTimeout(loadData, 1200);
-        });
+  if (params.action === "delete") {
+    var data = sourceSheet.getDataRange().getValues();
+    for (var i = data.length - 1; i >= 1; i--) {
+      // 比對時間戳記 ID
+      if (data[i][0].toString() === params.id.toString()) {
+        var rowData = data[i];
+        rowData.push(new Date().toLocaleString() + " (已完成)"); 
+        targetSheet.appendRow(rowData); // 搬移到歷史紀錄
+        sourceSheet.deleteRow(i + 1);  // 從待處理刪除
+        break;
+      }
     }
+    return ContentService.createTextOutput("Moved").setMimeType(ContentService.MimeType.TEXT);
+  } else {
+    // 新增資料到待處理
+    sourceSheet.appendRow([
+      new Date().toLocaleString(), 
+      params.room,                 
+      params.type,                 
+      params.note                  
+    ]);
+    return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
+  }
+}
 
-    function deleteItem(id) {
-        if(!confirm("確定該事項已處理完成並刪除嗎？")) return;
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "delete", id: id })
-        }).then(() => {
-            setTimeout(loadData, 1200);
-        });
-    }
-
-    function loadData() {
-        fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-            const list = document.getElementById('handoverList');
-            if (data.length === 0) {
-                list.innerHTML = "<p style='text-align:center; color:#999;'>✅ 目前無待辦事項</p>";
-                return;
-            }
-            list.innerHTML = "";
-            data.reverse().forEach(row => {
-                list.innerHTML += `
-                    <div class="item">
-                        <div class="item-header">
-                            <span>${row[1]}</span>
-                            <span class="time">${row[0]}</span>
-                        </div>
-                        <div style="color:#666; font-size:14px; margin-bottom:5px;">[${row[2]}]</div>
-                        <div style="padding-right:10px;">${row[3]}</div>
-                        <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                    </div>`;
-            });
-        }).catch(() => {
-            document.getElementById('handoverList').innerHTML = "<p style='color:red; text-align:center;'>連線失敗，請檢查網路或 GAS 部署</p>";
-        });
-    }
-</script>
-
-</body>
-</html>
+function doGet(e) {
+  var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
+  // 根據網頁參數決定讀取哪一個分頁
+  var mode = e.parameter.mode || "current";
+  var sheet = (mode === "history") ? ss.getSheetByName("已完成") : ss.getSheets()[0];
+  
+  var data = sheet.getDataRange().getValues();
+  if (data.length > 1) { 
+    data.shift(); 
+    // 歷史模式只取最近 50 筆
+    if (mode === "history") data = data.slice(-50);
+  } else { 
+    data = []; 
+  }
+  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
+}
