@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯智慧交接看板 V4.2</title>
+    <title>飯店櫃檯智慧交接看板 V4.3</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
@@ -14,12 +14,13 @@
         button { width: 100%; padding: 14px; margin-top: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
         .btn-send { background: var(--normal); color: white; }
         
-        /* 卡片設計優化：防止遮擋 */
+        /* 卡片設計 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
         .p-important { border-left-color: var(--important); background: #fffcf0; }
         .p-normal { border-left-color: var(--normal); }
         
+        /* 資訊佈局：防止遮擋 */
         .card-meta { font-size: 11px; color: #666; margin-bottom: 8px; padding-right: 75px; line-height: 1.5; }
         .meta-item { display: block; }
         .today-alert { border: 2px solid var(--urgent); }
@@ -31,6 +32,7 @@
         
         .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; text-align: center; }
         .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
+        .btn-clear { background: #666; color: white; padding: 6px 12px; font-size: 11px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; float: right; margin-top: 5px; }
     </style>
 </head>
 <body onload="loadData('current')">
@@ -85,7 +87,7 @@
         <input type="text" id="room" placeholder="例如: 8002">
 
         <label>📝 詳細說明</label>
-        <textarea id="note" rows="2" placeholder="請詳細寫下需要注意的事項..."></textarea>
+        <textarea id="note" rows="2" placeholder="請詳細敘述..."></textarea>
         
         <button class="btn-send" onclick="save()">發佈至看板</button>
     </div>
@@ -99,7 +101,8 @@
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycby8-66_OZQakC94EvsfbvsCtTla-7KLLtzVdyWJoi_HA5h4SQRz5EQ3iQi8zPxRdxof/exec";
+    // 使用最新產生的 API 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbwOSr566D6tH3tO21ssw2f677g3yOKSHlgkJvEk_YioxTnHfPWXeFgFIzVKNh2mZGPd/exec";
 
     function checkType() {
         document.getElementById('shuttleBox').style.display = (document.getElementById('type').value === '🚗 接駁服務') ? 'block' : 'none';
@@ -150,9 +153,8 @@
                 const displayDate = row[1].split('T')[0];
                 const isToday = (displayDate === today && !isH);
                 
-                let lineMsg = `🏨【飯店交接】\n📌類別：${row[2]}\n📍房號：${row[4]}\n📝說明：${row[5]}\n📅預計：${displayDate}\n👤發佈：${row[6]}`;
+                let lineMsg = `🏨【飯店交接】\n📌類別：${row[2]}\n📍位置：${row[4]}\n📝說明：${row[5]}\n📅預計：${displayDate}\n👤發佈：${row[6]}`;
                 if(row[8]) lineMsg += `\n🚗接駁：${row[8]}\n🕒時間：${row[9]}\n👤負責：${row[7]}`;
-                
                 const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
 
                 area.innerHTML += `
@@ -168,9 +170,11 @@
                         <div style="margin-top:5px; color:#333; line-height:1.4;">${row[5]}</div>
                         <div style="font-size:10px; color:#999; margin-top:10px;">系統序號: ${row[0]}</div>
                         
-                        ${isH ? '' : `
+                        ${isH ? `
+                            <button class="btn-clear" onclick="clearHistory('${row[0]}')">🗑️ 永久刪除紀錄</button>
+                        ` : `
                             <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE 群組</a>
+                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
                         `}
                     </div>`;
             });
@@ -181,6 +185,12 @@
         if(!confirm("確定已處理完成？")) return;
         fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) })
         .then(() => setTimeout(() => loadData('current'), 1000));
+    }
+
+    function clearHistory(id) {
+        if(!confirm("⚠️ 永久刪除此筆歷史紀錄且不可還原，確定嗎？")) return;
+        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "clear_history", id }) })
+        .then(() => setTimeout(() => loadData('history'), 1000));
     }
 </script>
 </body>
