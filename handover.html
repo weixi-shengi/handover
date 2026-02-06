@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>飯店智慧看板 V8.1 - 原地編輯版</title>
+    <title>飯店智慧看板 V9.0 - 旗艦整合版</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bed: #9c27b0; --carpet: #455a64; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
@@ -12,9 +12,10 @@
         label { display: block; margin-top: 10px; font-size: 13px; font-weight: bold; color: #555; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; }
         
-        button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
         .btn-send { background: var(--normal); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 15px; }
         
+        /* 卡片顏色設計 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
         .p-important { border-left-color: var(--important); background: #fffcf0; }
@@ -22,47 +23,49 @@
         .p-carpet { border-left-color: var(--carpet); background: #eceff1; }
         .p-normal { border-left-color: var(--normal); }
 
-        /* 洗地毯專用區 */
-        .carpet-grid { display: grid; grid-template-columns: 45px 1fr 1fr; gap: 8px; align-items: center; margin-top: 5px; background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #eee; }
-        .carpet-grid span { font-size: 14px; font-weight: bold; }
-        .carpet-grid input { padding: 5px; font-size: 12px; }
+        /* 洗地毯 2-9F 輸入區 */
+        .carpet-grid { display: grid; grid-template-columns: 40px 1fr 1fr; gap: 5px; align-items: center; margin-top: 5px; background: #fff; padding: 5px; border-radius: 5px; border: 1px solid #eee; }
+        .carpet-grid span { font-size: 12px; font-weight: bold; }
+        .carpet-grid input { padding: 4px; font-size: 11px; }
 
         .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
-        
         .tab-box { display: flex; gap: 8px; margin: 15px 0; }
         .tab-btn { flex: 1; padding: 12px; background: #eee; font-size: 14px; }
         .tab-btn.active { background: #607d8b; color: white; }
         
-        /* 卡片按鈕 */
-        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; width: auto; padding: 6px 12px; font-size: 12px; }
-        .btn-edit { background: #ff9800; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; border-radius: 5px; }
-        .btn-line { background: #00b900; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; margin-right: 5px; }
-        .btn-save { background: #1a73e8; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; border-radius: 5px; }
-        .btn-cancel { background: #999; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; margin-left: 5px; border-radius: 5px; }
+        /* 按鈕樣式 */
+        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #ff9800; color: white; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; border-radius: 5px; }
+        .btn-line { background: #00b900; color: white; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; margin-right: 5px; }
+        .btn-batch-del { background: #ff4d4d; color: white; width: 100%; padding: 15px; margin-top: 20px; }
 
+        /* 原地編輯區域樣式 */
+        .edit-area { display: none; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        .edit-area textarea { height: 180px; font-size: 13px; line-height: 1.6; background: #fffef0; }
+        .btn-save { background: #1a73e8; color: white; padding: 8px 15px; font-size: 13px; margin-top: 5px; }
+        .btn-cancel { background: #999; color: white; padding: 8px 15px; font-size: 13px; margin-top: 5px; margin-left: 5px; }
+
+        /* 歷史勾選框 */
+        .history-check { position: absolute; right: 10px; bottom: 15px; width: 22px; height: 22px; }
         .search-box { background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #bbdefb; }
-        
-        /* 編輯區域樣式 */
-        .edit-area { display: none; margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .edit-area textarea { font-size: 14px; line-height: 1.5; height: 120px; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 飯店智慧看板 V8.1</h2>
+    <h2>🏨 飯店交接智慧看板 V9.0</h2>
     
     <div id="inputSection">
         <label>👤 發佈人員</label>
         <select id="staff">
-            <option value="LILLI 經理">LILLI 經理</option>
-            <option value="TINO 主任">TINO 主任</option>
-            <option value="SUE 副主任">SUE 副主任</option>
-            <option value="LUCIEN 專員">LUCIEN 專員</option>
-            <option value="MONA 專員">MONA 專員</option>
-            <option value="XI 專員">XI 專員</option>
-            <option value="ALLEN 主任">ALLEN 主任</option>
-            <option value="ERIC 專員">ERIC 專員</option>
+            <option value="LILLI Manager">LILLI Manager</option>
+            <option value="TINO Supervisor">TINO Supervisor</option>
+            <option value="SUE Asst. Supervisor">SUE Asst. Supervisor</option>
+            <option value="LUCIEN Specialist">LUCIEN Specialist</option>
+            <option value="MONA Specialist">MONA Specialist</option>
+            <option value="XI Specialist">XI Specialist</option>
+            <option value="ALLEN Supervisor">ALLEN Supervisor</option>
+            <option value="ERIC Specialist">ERIC Specialist</option>
             <option value="歐陽酉吉 救生員">歐陽酉吉 救生員</option>
         </select>
 
@@ -79,11 +82,11 @@
         <div id="shuttleBox" class="extra-box" style="background:#fff9e6;">
             <input type="text" id="shDetail" placeholder="地點/人數">
             <input type="text" id="arTime" placeholder="時間/班次">
-            <input type="text" id="driver" placeholder="負責司機姓名">
+            <input type="text" id="driver" placeholder="負責司機">
         </div>
 
         <div id="bedBox" class="extra-box" style="background:#fdf2ff;">
-            <input type="text" id="rooms" placeholder="房號清單 (空格分開)">
+            <input type="text" id="rooms" placeholder="房號清單 (例如: 801 802)">
             <select id="bedStatus">
                 <option value="🔴 預進使用">🔴 預進使用</option>
                 <option value="🟢 空房可賣">🟢 空房可賣</option>
@@ -92,13 +95,13 @@
         </div>
 
         <div id="carpetBox" class="extra-box" style="background:#eceff1;">
-            <div style="display:grid; grid-template-columns:45px 1fr 1fr; text-align:center; font-size:11px; color:#666; margin-bottom:5px;">
-                <span>樓層</span><span>預計日期</span><span>完成日期</span>
+            <div style="display:grid; grid-template-columns:40px 1fr 1fr; text-align:center; font-size:11px; color:#666;">
+                <span>樓層</span><span>預計洗</span><span>完工日</span>
             </div>
-            <div id="carpetGridRows"></div>
+            <div id="carpetGrid"></div>
         </div>
 
-        <div id="normalRoomBox">
+        <div id="normalBox">
             <label>📍 房號 / 位置</label>
             <input type="text" id="room" placeholder="例如: 8002">
         </div>
@@ -120,7 +123,7 @@
     <div class="search-box">
         <label>🔍 分類快速篩選：</label>
         <select id="categoryFilter" onchange="filterData()">
-            <option value="全部">全部事項</option>
+            <option value="全部">全部顯示</option>
             <option value="📦 行李物品">📦 行李物品</option>
             <option value="🚗 接駁服務">🚗 接駁服務</option>
             <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
@@ -130,15 +133,25 @@
     </div>
 
     <div id="listArea"></div>
+    
+    <div id="historyControls" style="display:none;">
+        <button class="btn-batch-del" onclick="batchDelete()">🗑️ 刪除勾選的事項</button>
+    </div>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbzbtz04HVrWWxPjgL1J4oPFs00t4B9HX73tsY2B63daQgLUHXJHqg1r5jhfWf8AzD5o/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycby1Vs3HGJYTIaF7DWlLVylIybgMavyXb6mDeEMymyX9Quv3xfEAqdSWO2tsas0MDIcU/exec";
     let allData = [];
 
-    const carpetGridRows = document.getElementById('carpetGridRows');
+    // 初始化 2-9F 地毯格
+    const carpetGrid = document.getElementById('carpetGrid');
     for(let i=2; i<=9; i++){
-        carpetGridRows.innerHTML += `<div class="carpet-grid"><span>${i}F</span><input type="date" id="p_date_${i}F"><input type="date" id="d_date_${i}F"></div>`;
+        carpetGrid.innerHTML += `
+            <div class="carpet-grid">
+                <span>${i}F</span>
+                <input type="date" id="p_${i}F">
+                <input type="date" id="d_${i}F">
+            </div>`;
     }
 
     function checkType() {
@@ -146,7 +159,7 @@
         document.getElementById('shuttleBox').style.display = (type === '🚗 接駁服務' ? 'block' : 'none');
         document.getElementById('bedBox').style.display = (type === '🛏️ 拆併床服務' ? 'block' : 'none');
         document.getElementById('carpetBox').style.display = (type === '🧹 洗地毯保養' ? 'block' : 'none');
-        document.getElementById('normalRoomBox').style.display = (type !== '🛏️ 拆併床服務' && type !== '🧹 洗地毯保養' ? 'block' : 'none');
+        document.getElementById('normalBox').style.display = (type !== '🛏️ 拆併床服務' && type !== '🧹 洗地毯保養' ? 'block' : 'none');
     }
 
     function save() {
@@ -165,26 +178,33 @@
             priority = 'bed';
         } else if(type === '🧹 洗地毯保養') {
             priority = 'carpet';
-            room = "洗地毯保養行程表";
-            let cPlan = "【樓層保養進度】\n";
+            room = "洗地毯進度明細";
+            let cPlan = "【樓層保養進度表】\n";
             for(let i=2; i<=9; i++){
-                let p = document.getElementById('p_date_'+i+'F').value;
-                let d = document.getElementById('d_date_'+i+'F').value;
+                let p = document.getElementById('p_'+i+'F').value;
+                let d = document.getElementById('d_'+i+'F').value;
                 if(p || d) cPlan += `${i}F: (預)${p||'--'} (完)${d||'--'}\n`;
             }
             note = cPlan + note;
         } else if(type.includes('維修')) { priority = 'urgent'; }
 
-        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value }) }).then(() => { alert("已發佈！"); location.reload(); });
+        fetch(API_URL, {
+            method: "POST", mode: "no-cors",
+            body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value })
+        }).then(() => { alert("已發佈！"); location.reload(); });
     }
 
     function loadData(mode) {
         document.getElementById('btnC').className = (mode === 'current' ? 'tab-btn active' : 'tab-btn');
         document.getElementById('btnH').className = (mode === 'history' ? 'tab-btn active' : 'tab-btn');
         document.getElementById('inputSection').style.display = (mode === 'current' ? 'block' : 'none');
+        document.getElementById('historyControls').style.display = (mode === 'history' ? 'block' : 'none');
         const area = document.getElementById('listArea');
         area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
-        fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => { allData = data; filterData(mode); });
+        fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
+            allData = data;
+            filterData(mode);
+        });
     }
 
     function filterData(mode = 'current') {
@@ -194,66 +214,77 @@
         allData.slice().reverse().forEach(row => {
             if(filter !== "全部" && row[2] !== filter) return;
             const isH = (mode === 'history' || row[11]); 
-            const lineText = `🏨【${row[2]}交接】\n📍位置：${row[4]}\n📅日期：${row[1]}\n👤發佈：${row[6]}\n📝內容：\n${row[5]}`;
+            const lineText = `🏨【飯店交接】\n類別：${row[2]}\n位置：${row[4]}\n日期：${row[1]}\n內容：\n${row[5]}`;
             const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
 
             area.innerHTML += `
-                <div class="card p-${row[3]}" id="card_${row[0]}">
+                <div class="card p-${row[3]}">
                     <div style="font-size:11px; color:#666;">📅 ${row[1]} | 👤 ${row[6]}</div>
-                    <div id="display_room_${row[0]}" style="font-weight:bold; font-size:16px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
-                    <div id="display_note_${row[0]}" style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
+                    <div id="d_room_${row[0]}" style="font-weight:bold; font-size:16px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
+                    <div id="d_note_${row[0]}" style="margin-top:5px; color:#333; white-space: pre-wrap; font-size:14px; line-height:1.5;">${row[5]}</div>
                     
-                    <div class="edit-area" id="edit_area_${row[0]}">
-                        <label>修改房號/標題：</label>
-                        <input type="text" id="edit_room_input_${row[0]}" value="${row[4]}">
-                        <label>修改內容：</label>
-                        <textarea id="edit_note_input_${row[0]}">${row[5]}</textarea>
-                        <button class="btn-save" onclick="saveEdit('${row[0]}')">儲存</button>
+                    <div class="edit-area" id="ea_${row[0]}">
+                        <label>修改位置/房號清單：</label>
+                        <input type="text" id="inp_r_${row[0]}" value="${row[4]}">
+                        <label>修改內容/日期進度：</label>
+                        <textarea id="inp_n_${row[0]}">${row[5]}</textarea>
+                        <button class="btn-save" onclick="saveEdit('${row[0]}')">儲存修改</button>
                         <button class="btn-cancel" onclick="cancelEdit('${row[0]}')">取消</button>
                     </div>
 
                     ${!isH ? `
-                        <button class="btn-done" id="done_btn_${row[0]}" onclick="finishItem('${row[0]}')">完成</button>
-                        <a href="${lineUrl}" id="line_btn_${row[0]}" class="btn-line" target="_blank">分享至 LINE</a>
-                        <button class="btn-edit" id="edit_btn_${row[0]}" onclick="toggleEdit('${row[0]}')">✏️ 修改</button>
-                    ` : `<div style="color:green; font-size:11px; margin-top:10px;">✅ 已處理完成</div>`}
+                        <button class="btn-done" id="done_${row[0]}" onclick="finishItem('${row[0]}')">完成</button>
+                        <a href="${lineUrl}" id="line_${row[0]}" class="btn-line" target="_blank">分享至 LINE</a>
+                        <button class="btn-edit" id="edit_${row[0]}" onclick="toggleEdit('${row[0]}')">✏️ 修改</button>
+                    ` : `
+                        <input type="checkbox" class="history-check" value="${row[0]}">
+                        <div style="color:green; font-size:11px; margin-top:10px;">✅ 已存檔於 ${row[11]}</div>
+                    `}
                 </div>`;
         });
     }
 
     function toggleEdit(id) {
-        document.getElementById(`display_room_${id}`).style.display = 'none';
-        document.getElementById(`display_note_${id}`).style.display = 'none';
-        document.getElementById(`edit_area_${id}`).style.display = 'block';
-        document.getElementById(`done_btn_${id}`).style.display = 'none';
-        document.getElementById(`line_btn_${id}`).style.display = 'none';
-        document.getElementById(`edit_btn_${id}`).style.display = 'none';
+        document.getElementById(`d_room_${id}`).style.display = 'none';
+        document.getElementById(`d_note_${id}`).style.display = 'none';
+        document.getElementById(`ea_${id}`).style.display = 'block';
+        document.getElementById(`done_${id}`).style.display = 'none';
+        document.getElementById(`line_${id}`).style.display = 'none';
+        document.getElementById(`edit_${id}`).style.display = 'none';
     }
 
     function cancelEdit(id) {
-        document.getElementById(`display_room_${id}`).style.display = 'block';
-        document.getElementById(`display_note_${id}`).style.display = 'block';
-        document.getElementById(`edit_area_${id}`).style.display = 'none';
-        document.getElementById(`done_btn_${id}`).style.display = 'block';
-        document.getElementById(`line_btn_${id}`).style.display = 'inline-block';
-        document.getElementById(`edit_btn_${id}`).style.display = 'inline-block';
+        document.getElementById(`d_room_${id}`).style.display = 'block';
+        document.getElementById(`d_note_${id}`).style.display = 'block';
+        document.getElementById(`ea_${id}`).style.display = 'none';
+        document.getElementById(`done_${id}`).style.display = 'block';
+        document.getElementById(`line_${id}`).style.display = 'inline-block';
+        document.getElementById(`edit_${id}`).style.display = 'inline-block';
     }
 
     function saveEdit(id) {
-        const newRoom = document.getElementById(`edit_room_input_${id}`).value;
-        const newNote = document.getElementById(`edit_note_input_${id}`).value;
-        
-        fetch(API_URL, { 
-            method: "POST", 
-            mode: "no-cors", 
-            body: JSON.stringify({ action: "update_content", id, newRoom, newNote }) 
-        }).then(() => { 
-            alert("更新成功！"); 
-            location.reload(); 
+        const nr = document.getElementById(`inp_r_${id}`).value;
+        const nn = document.getElementById(`inp_n_${id}`).value;
+        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom: nr, newNote: nn }) }).then(() => {
+            alert("更新成功！");
+            location.reload();
         });
     }
 
-    function finishItem(id) { if(confirm("確定完成？")) fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload()); }
+    function finishItem(id) {
+        if(confirm("確定該事項已處理完成？")) fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload());
+    }
+
+    function batchDelete() {
+        const checked = Array.from(document.querySelectorAll('.history-check:checked')).map(cb => cb.value);
+        if(checked.length === 0) return alert("請先勾選要刪除的事項");
+        if(confirm(`確定要永久刪除這 ${checked.length} 筆紀錄嗎？`)) {
+            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_delete_history", ids: checked }) }).then(() => {
+                alert("已刪除所選紀錄！");
+                location.reload();
+            });
+        }
+    }
 </script>
 </body>
 </html>
