@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯智慧交接看板 V4.1</title>
+    <title>飯店櫃檯智慧交接看板 V4.2</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
@@ -14,12 +14,14 @@
         button { width: 100%; padding: 14px; margin-top: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
         .btn-send { background: var(--normal); color: white; }
         
+        /* 卡片設計優化：防止遮擋 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
         .p-important { border-left-color: var(--important); background: #fffcf0; }
         .p-normal { border-left-color: var(--normal); }
         
-        .card-meta { display: flex; justify-content: flex-start; gap: 10px; font-size: 11px; color: #666; margin-bottom: 5px; padding-right: 70px; }
+        .card-meta { font-size: 11px; color: #666; margin-bottom: 8px; padding-right: 75px; line-height: 1.5; }
+        .meta-item { display: block; }
         .today-alert { border: 2px solid var(--urgent); }
 
         .shuttle-box { background: #fef9e7; padding: 12px; border-radius: 8px; border: 1px solid #f9e4ad; margin-top: 10px; display: none; }
@@ -27,7 +29,6 @@
         .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: #607d8b; color: white; }
         
-        /* 修正 LINE 按鈕與連結 */
         .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; text-align: center; }
         .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
     </style>
@@ -48,7 +49,7 @@
             <option value="XI專員">XI 專員</option>
             <option value="ALLEN主任">ALLEN 主任</option>
             <option value="ERIC專員">ERIC 專員</option>
-            <option value="歐陽商吉救生員">歐陽商吉 救生員</option>
+            <option value="歐陽酉吉救生員">歐陽酉吉 救生員</option>
         </select>
 
         <label>📅 預計處理日期</label>
@@ -149,29 +150,27 @@
                 const displayDate = row[1].split('T')[0];
                 const isToday = (displayDate === today && !isH);
                 
-                // 修正 LINE 文字格式
-                let lineMsg = `🏨【${row[2]}】\n📍位置：${row[4]}\n📝說明：${row[5]}\n📅日期：${displayDate}\n👤發佈：${row[6]}`;
+                let lineMsg = `🏨【飯店交接】\n📌類別：${row[2]}\n📍房號：${row[4]}\n📝說明：${row[5]}\n📅預計：${displayDate}\n👤發佈：${row[6]}`;
                 if(row[8]) lineMsg += `\n🚗接駁：${row[8]}\n🕒時間：${row[9]}\n👤負責：${row[7]}`;
                 
-                // 生成 LINE 連結
                 const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
 
                 area.innerHTML += `
                     <div class="card p-${row[3]} ${isToday ? 'today-alert' : ''}">
                         <div class="card-meta">
-                            <span>📅 預計: ${displayDate}</span>
-                            <span>👤 發佈: ${row[6]}</span>
+                            <span class="meta-item">📅 預計日期: ${displayDate}</span>
+                            <span class="meta-item">👤 發佈人員: ${row[6]}</span>
                         </div>
                         <div style="font-weight:bold; font-size:17px; margin-bottom:5px;">
                             ${row[4]} <small>[${row[2]}]</small>
                         </div>
                         ${row[8] ? `<div style="color:var(--important); font-size:13px; font-weight:bold; margin-bottom:5px;">🚗 ${row[8]} | 負責: ${row[7]} | 🕒 ${row[9]}</div>` : ''}
                         <div style="margin-top:5px; color:#333; line-height:1.4;">${row[5]}</div>
-                        <div style="font-size:10px; color:#999; margin-top:10px;">系統: ${row[0]}</div>
+                        <div style="font-size:10px; color:#999; margin-top:10px;">系統序號: ${row[0]}</div>
                         
                         ${isH ? '' : `
                             <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
+                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE 群組</a>
                         `}
                     </div>`;
             });
