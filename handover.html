@@ -3,57 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯交接</title>
+    <title>飯店櫃檯交接看板</title>
     <style>
+        :root { --primary: #1a73e8; }
         body { font-family: sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1a73e8; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background: #1a73e8; color: white; border: none; font-weight: bold; cursor: pointer; }
-        .item { background: #fff; border-left: 5px solid #1a73e8; padding: 10px; margin-top: 10px; border-radius: 3px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .room { font-weight: bold; }
-        .time { font-size: 0.8rem; color: #888; float: right; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary); margin-top: 0; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button:active { transform: scale(0.98); }
+        .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .item-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+        .time { font-size: 0.8rem; color: #888; font-weight: normal; }
     </style>
 </head>
-<body>
+<body onload="loadData()">
+
 <div class="container">
-    <h2>🏨 櫃檯交接看板</h2>
-    <input type="text" id="room" placeholder="房號">
+    <h2>🏨 飯店櫃檯交接</h2>
+    <input type="text" id="room" placeholder="房號/位置 (例如: 802)">
     <select id="type">
         <option value="luggage">📦 行李物品</option>
         <option value="vip">🌟 VIP 需求</option>
         <option value="repair">🛠️ 維修保養</option>
     </select>
-    <input type="text" id="note" placeholder="內容">
-    <button onclick="send()">發佈到雲端</button>
-    <div id="list" style="margin-top:20px;"><p style="text-align:center;">讀取中...</p></div>
+    <input type="text" id="note" placeholder="請輸入具體內容...">
+    <button onclick="saveToCloud()">發佈並同步到雲端</button>
+    
+    <div id="handoverList" style="margin-top:25px;">
+        <p style="text-align:center; color:#999;">正在連線雲端資料庫...</p>
+    </div>
 </div>
 
 <script>
-    // 這裡貼上你剛才「重新部署」後的最新網址 (結尾必須是 /exec)
-    const url = "https://script.google.com/macros/s/AKfycbzZSpYHRJpU4D145kzXTRkfQZ1Sgz2JRR4DMU3ftiRh_56_QpvgiuBDGcym0xwxsEjB/exec";
+    // 這裡使用你提供的最新 GAS 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbz9GAI8tJ3j1lpjis2gerhNRY9xTiMv4oFC7idIIaQPcltZQOF5a3s7_q_oK9o9LvZn/exec";
 
-    function send() {
+    function saveToCloud() {
         const room = document.getElementById('room').value;
         const note = document.getElementById('note').value;
-        if(!room || !note) return alert("請填寫內容");
-        
-        fetch(url, { method: "POST", mode: "no-cors", body: JSON.stringify({ room, type: document.getElementById('type').value, note }) })
-        .then(() => { alert("已存入雲端！"); location.reload(); });
+        const type = document.getElementById('type').value;
+
+        if(!room || !note) return alert("請填寫房號與內容！");
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ room: room, type: type, note: note })
+        }).then(() => {
+            alert("已成功存入雲端試算表！");
+            document.getElementById('room').value = "";
+            document.getElementById('note').value = "";
+            setTimeout(loadData, 1500); // 延遲一下再重新讀取
+        }).catch(err => alert("發送失敗，請確認網路或 GAS 權限"));
     }
 
-    function load() {
-        fetch(url).then(res => res.json()).then(data => {
-            const list = document.getElementById('list');
-            list.innerHTML = data.length ? "" : "目前無紀錄";
+    function loadData() {
+        fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+            const list = document.getElementById('handoverList');
+            if (data.length === 0) {
+                list.innerHTML = "<p style='text-align:center; color:#999;'>目前尚無交接紀錄</p>";
+                return;
+            }
+            list.innerHTML = "";
             data.reverse().forEach(row => {
-                list.innerHTML += `<div class="item"><span class="time">${row[0]}</span><div class="room">${row[1]} [${row[2]}]</div><div>${row[3]}</div></div>`;
+                list.innerHTML += `
+                    <div class="item">
+                        <div class="item-header">
+                            <span>${row[1]} [${row[2]}]</span>
+                            <span class="time">${row[0]}</span>
+                        </div>
+                        <div>${row[3]}</div>
+                    </div>`;
             });
-        }).catch(() => {
-            document.getElementById('list').innerHTML = "連線 API 失敗，請確認 GAS 已選「新版本」並重新部署為「所有人」";
+        })
+        .catch(() => {
+            document.getElementById('handoverList').innerHTML = "<p style='color:red; text-align:center;'>連線失敗，請檢查 GAS 是否部署為『所有人』</p>";
         });
     }
-    load();
 </script>
+
 </body>
 </html>
