@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯智慧交接看板 V6.0</title>
+    <title>飯店智慧看板 V6.5 - 動態更新版</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bed: #9c27b0; --carpet: #455a64; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
@@ -11,42 +11,36 @@
         h2 { text-align: center; color: var(--normal); margin-bottom: 20px; }
         label { display: block; margin-top: 12px; font-size: 13px; color: #555; font-weight: bold; }
         input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; outline: none; }
-        button { width: 100%; padding: 14px; margin-top: 15px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-send { background: var(--normal); color: white; }
+        button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-send { background: var(--normal); color: white; width: 100%; font-size: 16px; padding: 15px; }
         
-        /* 批量選擇樓層樣式 */
-        .check-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px solid #eee; }
-        .check-item { display: flex; align-items: center; gap: 5px; font-size: 14px; cursor: pointer; }
-        .check-item input { width: auto; margin: 0; }
-
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
-        .p-important { border-left-color: var(--important); background: #fffcf0; }
-        .p-normal { border-left-color: var(--normal); }
         .p-bed { border-left-color: var(--bed); background: #fdf2ff; }
         .p-carpet { border-left-color: var(--carpet); background: #eceff1; }
+        .p-normal { border-left-color: var(--normal); }
         
-        .status-tag { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; color: white; margin-bottom: 8px; }
-        .tag-carpet { background: var(--carpet); }
-        .tag-checkin { background: #e91e63; }
+        .card-meta { font-size: 11px; color: #666; margin-bottom: 5px; }
+        .btn-edit { background: #ff9800; color: white; padding: 6px 12px; border-radius: 5px; margin-top: 10px; display: inline-block; font-size: 12px; text-decoration: none; }
+        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
         
-        .tab-box { display: flex; gap: 8px; margin: 20px 0; }
+        .check-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px; }
+        .check-item { display: flex; align-items: center; gap: 4px; font-size: 13px; }
+        .check-item input { width: auto; margin: 0; }
+        .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
+        
+        .tab-box { display: flex; gap: 8px; margin: 20px 0 10px 0; }
         .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
         .tab-btn.active { background: #607d8b; color: white; }
-        
-        .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
-        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
-        .btn-clear { background: #666; color: white; padding: 6px 12px; font-size: 11px; width: auto; border-radius: 5px; border:none; cursor:pointer; float: right; margin-top: 5px; }
-        .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 櫃檯智慧交接 V6.0</h2>
+    <h2>🏨 櫃檯智慧看板 V6.5</h2>
     
     <div id="inputSection">
-        <label>👤 發佈交接人員</label>
+        <label>👤 發佈人員</label>
         <select id="staff">
             <option value="LILLI經理">LILLI 經理</option>
             <option value="TINO主任">TINO 主任</option>
@@ -59,58 +53,41 @@
             <option value="歐陽酉吉救生員">歐陽酉吉 救生員</option>
         </select>
 
-        <label>📅 預計/保養日期</label>
-        <input type="date" id="targetDate">
-        
         <label>📑 交接類別</label>
         <select id="type" onchange="checkType()">
             <option value="📦 行李物品">📦 行李物品</option>
-            <option value="🚗 接駁服務">🚗 接駁服務</option>
             <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
             <option value="🧹 洗地毯保養">🧹 洗地毯保養</option>
             <option value="🛠️ 維修報修">🛠️ 維修報修</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
 
-        <div id="bedBox" class="extra-box" style="background:#fdf2ff; border-color:#e1bee7;">
-            <label>🛏️ 併床狀態</label>
-            <select id="bedStatus">
-                <option value="【預進使用】">🔴 預進使用</option>
-                <option value="【空房可賣】">🟢 空房可賣</option>
-                <option value="【需拆除】">⚪ 需拆除</option>
-            </select>
-            <label>📍 房號清單 (可用空格或逗號分開)</label>
-            <input type="text" id="rooms" placeholder="例如: 802 805 810">
+        <div id="bedBox" class="extra-box" style="background:#fdf2ff;">
+            <label>📍 併床房號 (例如: 801, 802, 805)</label>
+            <input type="text" id="rooms" placeholder="輸入多個房號...">
         </div>
 
-        <div id="carpetBox" class="extra-box" style="background:#eceff1; border-color:#cfd8dc;">
-            <label>🏢 選擇預排樓層 (可多選)</label>
+        <div id="carpetBox" class="extra-box" style="background:#eceff1;">
+            <label>🏢 參與樓層</label>
             <div class="check-group">
-                <label class="check-item"><input type="checkbox" name="floor" value="2F">2F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="3F">3F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="4F">4F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="5F">5F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="6F">6F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="7F">7F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="8F">8F</label>
-                <label class="check-item"><input type="checkbox" name="floor" value="9F">9F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="2F">2F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="3F">3F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="4F">4F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="5F">5F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="6F">6F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="7F">7F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="8F">8F</label>
+                <label class="check-item"><input type="checkbox" name="f" value="9F">9F</label>
             </div>
-            <label>⚙️ 保養進度</label>
-            <select id="carpetStatus">
-                <option value="【⚠️ 預排保養】">【⚠️ 預排保養】</option>
-                <option value="【✅ 已洗畢/解除】">【✅ 已洗畢/解除】</option>
-            </select>
         </div>
 
-        <div id="normalRoomBox">
-            <label>📍 房號 / 位置</label>
-            <input type="text" id="room" placeholder="例如: 802">
-        </div>
+        <label>📅 預計日期</label>
+        <input type="date" id="targetDate">
 
-        <label>📝 詳細內容說明</label>
-        <textarea id="note" rows="2" placeholder="請填寫具體內容..."></textarea>
+        <label>📝 詳細內容說明 (可寫多個日期)</label>
+        <textarea id="note" rows="3" placeholder="例如：2/10洗2F、2/12洗3F..."></textarea>
         
-        <button class="btn-send" onclick="save()">發佈交接事項</button>
+        <button class="btn-send" onclick="save()">發佈事項</button>
     </div>
 
     <div class="tab-box">
@@ -122,36 +99,29 @@
 </div>
 
 <script>
-    // 使用最新提供的 API 網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbyNZxxgLcA765GE0ztncFYQcMpyWbC2HUmxN0wiWaLN71GaW9rVmgWkXqY2LuRmsycr/exec";
+    // 使用您最新的 API 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbwkmrlr6ld2fd1JXlDljGBkfNNeZnzlcDPVfWa82OA0Gcbo7eqVqEMRRx2JtZ83wwEM/exec";
 
     function checkType() {
         const type = document.getElementById('type').value;
         document.getElementById('bedBox').style.display = (type === '🛏️ 拆併床服務') ? 'block' : 'none';
         document.getElementById('carpetBox').style.display = (type === '🧹 洗地毯保養') ? 'block' : 'none';
-        document.getElementById('normalRoomBox').style.display = (type !== '🛏️ 拆併床服務' && type !== '🧹 洗地毯保養') ? 'block' : 'none';
     }
 
     function save() {
         const type = document.getElementById('type').value;
         const date = document.getElementById('targetDate').value;
-        const note = document.getElementById('note').value;
-        if(!date || !note) return alert("請填寫日期與說明內容");
-
-        let room = document.getElementById('room').value;
+        let note = document.getElementById('note').value;
+        let room = "一般位置";
         let priority = 'normal';
-        let customInfo = '';
 
         if(type === '🛏️ 拆併床服務') {
-            room = "批量併床: " + document.getElementById('rooms').value;
+            room = "併床清單: " + document.getElementById('rooms').value;
             priority = 'bed';
-            customInfo = document.getElementById('bedStatus').value;
         } else if(type === '🧹 洗地毯保養') {
-            const floors = Array.from(document.querySelectorAll('input[name="floor"]:checked')).map(el => el.value);
-            if(floors.length === 0) return alert("請勾選預排樓層");
-            room = "樓層保養: " + floors.join(", ");
+            const fs = Array.from(document.querySelectorAll('input[name="f"]:checked')).map(el => el.value);
+            room = "洗地毯樓層: " + fs.join(", ");
             priority = 'carpet';
-            customInfo = document.getElementById('carpetStatus').value;
         } else if(type.includes('維修')) {
             priority = 'urgent';
         }
@@ -159,12 +129,8 @@
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
-            body: JSON.stringify({ 
-                action: "add", date, room, note, type, priority, 
-                staff: document.getElementById('staff').value, 
-                customInfo: customInfo 
-            })
-        }).then(() => { alert("已發佈成功！"); location.reload(); });
+            body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value })
+        }).then(() => { alert("發佈成功！"); location.reload(); });
     }
 
     function loadData(mode) {
@@ -173,46 +139,51 @@
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
 
         const area = document.getElementById('listArea');
-        area.innerHTML = "<p style='text-align:center;'>資料連線中...</p>";
+        area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
 
         fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
             area.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
             data.reverse().forEach(row => {
                 const isH = (mode === 'history');
-                const displayDate = row[1].split('T')[0];
-                
-                let lineMsg = `🏨【${row[2]}】\n📍房號：${row[4]}\n📝說明：${row[5]}\n📅日期：${displayDate}`;
-                if(row[10]) lineMsg += `\n⚠️狀態：${row[10]}`;
-                const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
-
                 area.innerHTML += `
                     <div class="card p-${row[3]}">
-                        ${row[10] ? `<span class="status-tag tag-checkin">${row[10]}</span>` : ''}
-                        <div style="font-size:11px; color:#666;">📅 ${displayDate} | 👤 ${row[6]}</div>
-                        <div style="font-weight:bold; font-size:17px; margin-top:5px; color:#333;">${row[4]}</div>
-                        <div style="margin-top:5px; color:#666; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
+                        <div class="card-meta">📅 ${row[1].split('T')[0]} | 👤 ${row[6]}</div>
+                        <div style="font-weight:bold; font-size:16px; margin-top:5px; color:#333;">${row[4]}</div>
+                        <div style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
                         
                         ${isH ? `
-                            <button class="btn-clear" onclick="clearHistory('${row[0]}')">🗑️ 永久刪除</button>
+                            <button class="btn-done" style="background:#666" onclick="clearHistory('${row[0]}')">永久刪除</button>
                         ` : `
-                            <button class="btn-done" onclick="deleteItem('${row[0]}')">完成處理</button>
-                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
+                            <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
+                            <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容/剩餘房號</button>
                         `}
                     </div>`;
             });
         });
     }
 
+    function editItem(id, oldRoom, oldNote) {
+        const newRoom = prompt("修改標題/房號清單:", oldRoom);
+        const newNote = prompt("修改詳細內容/備註:", oldNote);
+        if (newRoom === null || newNote === null) return;
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "update_content", id, newRoom, newNote })
+        }).then(() => { alert("更新成功！"); location.reload(); });
+    }
+
     function deleteItem(id) {
         if(!confirm("確定已處理完成？")) return;
         fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) })
-        .then(() => setTimeout(() => loadData('current'), 1000));
+        .then(() => location.reload());
     }
 
     function clearHistory(id) {
-        if(!confirm("確定永久刪除歷史紀錄？")) return;
+        if(!confirm("永久刪除歷史紀錄？")) return;
         fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "clear_history", id }) })
-        .then(() => setTimeout(() => loadData('history'), 1000));
+        .then(() => location.reload());
     }
 </script>
 </body>
