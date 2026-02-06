@@ -11,15 +11,15 @@
         h2 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
         input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
         button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .tab-box { display: flex; gap: 8px; margin-top: 20px; }
-        .tab-btn { flex: 1; padding: 10px; font-size: 14px; background: #eee; color: #666; border-radius: 8px; border: none; cursor: pointer; }
+        .tab-box { display: flex; gap: 8px; margin: top 20px; margin-bottom: 10px; }
+        .tab-btn { flex: 1; padding: 12px; font-size: 14px; background: #eee; color: #666; border-radius: 8px; border: none; cursor: pointer; }
         .tab-btn.active { background: var(--history); color: white; }
         .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
         .history-item { border-left-color: #999; opacity: 0.8; }
         .item-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; padding-right: 65px; }
         .time { font-size: 0.75rem; color: #888; font-weight: normal; }
         .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); border-radius: 4px; margin: 0; }
-        .done-time { font-size: 11px; color: var(--success); margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
+        .done-label { font-size: 11px; color: var(--success); margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
     </style>
 </head>
 <body onload="loadData('current')">
@@ -39,8 +39,8 @@
             <option value="🍴 訂餐/早安叫醒">🍴 訂餐/早安叫醒</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
-        <input type="text" id="note" placeholder="詳細交接內容...">
-        <button onclick="saveToCloud()">發佈交接</button>
+        <input type="text" id="note" placeholder="詳細內容...">
+        <button onclick="saveToCloud()">發佈任務</button>
     </div>
 
     <div class="tab-box">
@@ -48,24 +48,24 @@
         <button id="btnHistory" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
-    <div id="handoverList" style="margin-top:10px;"></div>
+    <div id="handoverList"></div>
 </div>
 
 <script>
-    // 使用你提供的最新網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbyPCuUM1eo3tHmkxK7fgCbwtddqh5BSzMUaLXbfKhGQ0C8MXghTX4nxtJr1vJg5k5hh/exec";
+    // 已更新為你提供的最新網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbyLdGDZ2DS81nmY86Dx81QfLKFqVsLoJL25zf04Y_25sONyQ_2g46gia1qhMZ1RqjsR/exec";
 
     function saveToCloud() {
         const room = document.getElementById('room').value;
         const note = document.getElementById('note').value;
-        if(!room || !note) return alert("請填寫內容");
+        if(!room || !note) return alert("請填寫完整內容");
 
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ action: "add", room: room, type: document.getElementById('type').value, note: note })
         }).then(() => {
-            alert("已成功發佈！");
+            alert("已同步至雲端");
             document.getElementById('room').value = "";
             document.getElementById('note').value = "";
             loadData('current');
@@ -84,6 +84,7 @@
     }
 
     function loadData(mode) {
+        // 切換按鈕樣式與輸入框顯示
         document.getElementById('btnCurrent').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btnHistory').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
@@ -91,6 +92,7 @@
         const list = document.getElementById('handoverList');
         list.innerHTML = "<p style='text-align:center; color:#999;'>載入中...</p>";
 
+        // 向 GAS 發送帶有 mode 參數的請求
         fetch(`${API_URL}?mode=${mode}`)
         .then(res => res.json())
         .then(data => {
@@ -105,9 +107,11 @@
                         </div>
                         <div style="font-size:13px; color:#666;">[${row[2]}]</div>
                         <div>${row[3]}</div>
-                        ${isHistory ? `<div class="done-time">✅ ${row[4] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
+                        ${isHistory ? `<div class="done-label">✅ ${row[4] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
                     </div>`;
             });
+        }).catch(() => {
+            list.innerHTML = "<p style='text-align:center; color:red;'>連線失敗，請稍後再試</p>";
         });
     }
 </script>
