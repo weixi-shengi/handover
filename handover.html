@@ -3,117 +3,144 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯交接系統</title>
+    <title>飯店櫃檯交接看板</title>
     <style>
-        :root { --primary: #1a73e8; --success: #34a853; --history: #607d8b; }
+        :root { --primary: #1a73e8; --success: #34a853; --orange: #e67e22; }
         body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
         .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h2 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
-        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
-        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
-        .tab-box { display: flex; gap: 8px; margin: top 20px; margin-bottom: 10px; }
-        .tab-btn { flex: 1; padding: 12px; font-size: 14px; background: #eee; color: #666; border-radius: 8px; border: none; cursor: pointer; }
-        .tab-btn.active { background: var(--history); color: white; }
+        label { display: block; margin-top: 12px; font-size: 14px; color: #555; font-weight: bold; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        button:active { transform: scale(0.98); }
+        .shuttle-only { background: #fffcf0; padding: 12px; border-radius: 8px; border: 1px solid #f9e4ad; margin-top: 10px; display: none; }
+        .tab-box { display: flex; gap: 8px; margin: 20px 0 10px 0; }
+        .tab-btn { flex: 1; padding: 12px; font-size: 14px; background: #eee; border-radius: 8px; border: none; cursor: pointer; }
+        .tab-btn.active { background: #607d8b; color: white; }
         .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-        .history-item { border-left-color: #999; opacity: 0.8; }
-        .item-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; padding-right: 65px; }
-        .time { font-size: 0.75rem; color: #888; font-weight: normal; }
-        .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); border-radius: 4px; margin: 0; }
-        .done-label { font-size: 11px; color: var(--success); margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
+        .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); color: white; border-radius: 4px; border: none; }
+        .history-tag { color: var(--success); font-size: 11px; margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 飯店櫃檯交接</h2>
+    <h2>🏨 飯店櫃檯交接看板</h2>
     
     <div id="inputSection">
-        <input type="text" id="room" placeholder="房號 / 位置">
-        <select id="type">
+        <label>📅 預計日期</label>
+        <input type="date" id="targetDate">
+        
+        <label>📍 房號 / 位置</label>
+        <input type="text" id="room" placeholder="輸入房號或地點">
+        
+        <label>📑 交接類別</label>
+        <select id="type" onchange="toggleShuttle()">
             <option value="📦 行李寄放/提取">📦 行李寄放/提取</option>
+            <option value="🚗 接駁服務">🚗 接駁服務</option>
             <option value="🌟 VIP/特別需求">🌟 VIP/特別需求</option>
             <option value="🛠️ 客房維修報修">🛠️ 客房維修報修</option>
-            <option value="🛏️ 補發備品/毛巾">🛏️ 補發備品/毛巾</option>
-            <option value="🧹 清潔/開床服務">🧹 清潔/開床服務</option>
-            <option value="🚗 叫車/接送預約">🚗 叫車/接送預約</option>
-            <option value="🍴 訂餐/早安叫醒">🍴 訂餐/早安叫醒</option>
+            <option value="🧹 清潔服務">🧹 清潔服務</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
-        <input type="text" id="note" placeholder="詳細內容...">
-        <button onclick="saveToCloud()">發佈任務</button>
+
+        <div id="shuttleBox" class="shuttle-only">
+            <label>👤 接駁人員姓名</label>
+            <input type="text" id="driver" placeholder="填寫負責同事">
+            <label>🕒 抵達/班次時間</label>
+            <input type="text" id="arrivalTime" placeholder="例如: 14:30 (408次)">
+        </div>
+
+        <label>📝 內容說明</label>
+        <input type="text" id="note" placeholder="詳細交代事項...">
+        <button onclick="saveToCloud()">發佈看板</button>
     </div>
 
     <div class="tab-box">
-        <button id="btnCurrent" class="tab-btn active" onclick="loadData('current')">待處理看板</button>
-        <button id="btnHistory" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
+        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理事項</button>
+        <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
     <div id="handoverList"></div>
 </div>
 
 <script>
-    // 已更新為你提供的最新網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbyLdGDZ2DS81nmY86Dx81QfLKFqVsLoJL25zf04Y_25sONyQ_2g46gia1qhMZ1RqjsR/exec";
+    // 已更新為你提供的最新 API 網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbzw0xAsWTU7q2PyuK3WC3XnaRQ5S6MW-q7f5putbbbHHNsTo2TO5ljQHd-Qj_TDzl6v/exec";
 
+    // 根據類別切換接駁欄位顯示
+    function toggleShuttle() {
+        const isShuttle = document.getElementById('type').value === '🚗 接駁服務';
+        document.getElementById('shuttleBox').style.display = isShuttle ? 'block' : 'none';
+    }
+
+    // 發佈到雲端
     function saveToCloud() {
+        const date = document.getElementById('targetDate').value;
         const room = document.getElementById('room').value;
         const note = document.getElementById('note').value;
-        if(!room || !note) return alert("請填寫完整內容");
+        if(!date || !room || !note) return alert("請完整填寫日期、位置與內容！");
 
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
-            body: JSON.stringify({ action: "add", room: room, type: document.getElementById('type').value, note: note })
+            body: JSON.stringify({ 
+                action: "add", 
+                date, room, note,
+                type: document.getElementById('type').value,
+                driver: document.getElementById('driver').value,
+                arrivalTime: document.getElementById('arrivalTime').value
+            })
         }).then(() => {
-            alert("已同步至雲端");
-            document.getElementById('room').value = "";
-            document.getElementById('note').value = "";
-            loadData('current');
+            alert("已同步至雲端！");
+            location.reload(); // 重新整理清空欄位並刷新列表
         });
     }
 
+    // 處理完成（移動至歷史紀錄）
     function deleteItem(id) {
-        if(!confirm("確定已處理完成？資料將移至歷史存檔。")) return;
+        if(!confirm("確定已處理完成？")) return;
         fetch(API_URL, {
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ action: "delete", id: id })
         }).then(() => {
-            setTimeout(() => loadData('current'), 1200);
+            setTimeout(() => loadData('current'), 1000);
         });
     }
 
+    // 讀取資料
     function loadData(mode) {
-        // 切換按鈕樣式與輸入框顯示
-        document.getElementById('btnCurrent').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('btnHistory').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
 
-        const list = document.getElementById('handoverList');
-        list.innerHTML = "<p style='text-align:center; color:#999;'>載入中...</p>";
+        const listArea = document.getElementById('handoverList');
+        listArea.innerHTML = "<p style='text-align:center; color:#999;'>讀取雲端資料中...</p>";
 
-        // 向 GAS 發送帶有 mode 參數的請求
         fetch(`${API_URL}?mode=${mode}`)
         .then(res => res.json())
         .then(data => {
-            list.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>目前無資料</p>";
+            listArea.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
             data.reverse().forEach(row => {
-                const isHistory = (mode === 'history');
-                list.innerHTML += `
-                    <div class="item ${isHistory ? 'history-item' : ''}">
-                        <div class="item-header">
-                            <span>${row[1]}</span>
-                            <span class="time">${row[0]}</span>
+                const isHist = (mode === 'history');
+                const shuttleMsg = row[5] ? `<div style="color:var(--orange); font-size:13px; font-weight:bold; margin-top:4px;">👤 接駁員: ${row[5]} | 🕒 ${row[6]}</div>` : '';
+                
+                listArea.innerHTML += `
+                    <div class="item" style="${isHist ? 'border-left-color:#999; opacity:0.8;' : ''}">
+                        <div style="font-size:12px; color:var(--primary); font-weight:bold;">📅 預計日期: ${row[1]}</div>
+                        <div style="display:flex; justify-content:space-between; margin-top:3px;">
+                            <span style="font-weight:bold;">${row[3]} <small style="font-weight:normal;">[${row[2]}]</small></span>
+                            <span style="font-size:10px; color:#888;">${row[0]}</span>
                         </div>
-                        <div style="font-size:13px; color:#666;">[${row[2]}]</div>
-                        <div>${row[3]}</div>
-                        ${isHistory ? `<div class="done-label">✅ ${row[4] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
+                        ${shuttleMsg}
+                        <div style="margin-top:5px; font-size:15px;">${row[4]}</div>
+                        ${isHist ? `<div class="history-tag">✅ ${row[7] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
                     </div>`;
             });
-        }).catch(() => {
-            list.innerHTML = "<p style='text-align:center; color:red;'>連線失敗，請稍後再試</p>";
         });
     }
 </script>
+
 </body>
 </html>
