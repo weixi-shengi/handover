@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店櫃檯智慧交接看板 V4</title>
+    <title>飯店櫃檯智慧交接看板 V4.1</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
@@ -19,7 +19,6 @@
         .p-important { border-left-color: var(--important); background: #fffcf0; }
         .p-normal { border-left-color: var(--normal); }
         
-        /* 修正發佈人位置 */
         .card-meta { display: flex; justify-content: flex-start; gap: 10px; font-size: 11px; color: #666; margin-bottom: 5px; padding-right: 70px; }
         .today-alert { border: 2px solid var(--urgent); }
 
@@ -28,8 +27,9 @@
         .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
         .tab-btn.active { background: #607d8b; color: white; }
         
-        .btn-line { background: #00b900; color: white; width: auto; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; }
-        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; }
+        /* 修正 LINE 按鈕與連結 */
+        .line-link { background: #00b900; color: white; padding: 8px 15px; font-size: 13px; margin-top: 10px; border-radius: 5px; display: inline-block; text-decoration: none; font-weight: bold; text-align: center; }
+        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
     </style>
 </head>
 <body onload="loadData('current')">
@@ -133,11 +133,6 @@
         }).then(() => { alert("發佈成功！"); location.reload(); });
     }
 
-    function shareLine(msg) {
-        const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(msg);
-        window.open(lineUrl, '_blank');
-    }
-
     function loadData(mode) {
         document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
@@ -151,11 +146,15 @@
             data.reverse().forEach(row => {
                 const isH = (mode === 'history');
                 const today = new Date().toISOString().split('T')[0];
-                const displayDate = row[1].split('T')[0]; // 修正日期格式
+                const displayDate = row[1].split('T')[0];
                 const isToday = (displayDate === today && !isH);
                 
-                let lineMsg = `🏨【${row[2]}】\n📍房號：${row[4]}\n📝內容：${row[5]}\n📅預計：${displayDate}\n👤發佈：${row[6]}`;
+                // 修正 LINE 文字格式
+                let lineMsg = `🏨【${row[2]}】\n📍位置：${row[4]}\n📝說明：${row[5]}\n📅日期：${displayDate}\n👤發佈：${row[6]}`;
                 if(row[8]) lineMsg += `\n🚗接駁：${row[8]}\n🕒時間：${row[9]}\n👤負責：${row[7]}`;
+                
+                // 生成 LINE 連結
+                const lineUrl = "https://line.me/R/msg/text/?" + encodeURIComponent(lineMsg);
 
                 area.innerHTML += `
                     <div class="card p-${row[3]} ${isToday ? 'today-alert' : ''}">
@@ -172,7 +171,7 @@
                         
                         ${isH ? '' : `
                             <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                            <button class="btn-line" onclick="shareLine('${lineMsg}')">分享至 LINE</button>
+                            <a href="${lineUrl}" class="line-link" target="_blank">分享至 LINE</a>
                         `}
                     </div>`;
             });
