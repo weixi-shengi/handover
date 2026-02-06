@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店智慧看板 V7.0 - 終極全功能版</title>
+    <title>飯店智慧看板 V8.0</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bed: #9c27b0; --carpet: #455a64; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
@@ -14,9 +14,8 @@
         
         button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .btn-send { background: var(--normal); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 15px; }
-        .btn-send:active { transform: scale(0.98); }
-
-        /* 卡片與分色 */
+        
+        /* 卡片顏色區分 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
         .p-important { border-left-color: var(--important); background: #fffcf0; }
@@ -27,17 +26,18 @@
         /* 洗地毯專用區 */
         .carpet-grid { display: grid; grid-template-columns: 45px 1fr 1fr; gap: 8px; align-items: center; margin-top: 5px; background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #eee; }
         .carpet-grid span { font-size: 14px; font-weight: bold; }
-        .carpet-grid input { padding: 4px; font-size: 12px; }
+        .carpet-grid input { padding: 5px; font-size: 12px; }
 
         .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
         
-        /* 功能按鈕 */
+        /* 功能按鈕區 */
         .tab-box { display: flex; gap: 8px; margin: 15px 0; }
         .tab-btn { flex: 1; padding: 12px; background: #eee; font-size: 14px; }
         .tab-btn.active { background: #607d8b; color: white; }
         .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; width: auto; padding: 6px 12px; font-size: 12px; }
-        .btn-edit { background: #ff9800; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; }
-        .btn-batch { background: #ff4d4d; color: white; margin-top: 25px; padding: 15px; }
+        .btn-edit { background: #ff9800; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; }
+        .btn-line { background: #00b900; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; display: inline-block; text-decoration: none; border-radius: 5px; margin-right: 5px; }
+        .btn-batch { background: #ff4d4d; color: white; width: 100%; padding: 15px; margin-top: 25px; }
 
         .search-box { background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #bbdefb; }
     </style>
@@ -45,77 +45,77 @@
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 飯店智慧看板 V7.0</h2>
+    <h2>🏨 飯店智慧看板 V8.0</h2>
     
     <div id="inputSection">
         <label>👤 發佈人員</label>
         <select id="staff">
-            <option value="LILLI經理">LILLI 經理</option>
-            <option value="TINO主任">TINO 主任</option>
-            <option value="SUE副主任">SUE 副主任</option>
-            <option value="LUCIEN專員">LUCIEN 專員</option>
-            <option value="MONA專員">MONA 專員</option>
-            <option value="XI專員">XI 專員</option>
-            <option value="ALLEN主任">ALLEN 主任</option>
-            <option value="ERIC專員">ERIC 專員</option>
-            <option value="歐陽酉吉救生員">歐陽酉吉 救生員</option>
+            <option value="LILLI 經理">唐兢萱 LILLI經理</option>
+            <option value="TINO 主任">潘彥廷 TINO主任</option>
+            <option value="SUE 副主任">陳慧慈 SUE副主任</option>
+            <option value="LUCIEN 專員">楊承翰 LUCIEN專員</option>
+            <option value="MONA 專員">吳燦毓 MONA專員</option>
+            <option value="XI 專員">賴婧希 XI專員</option>
+            <option value="ALLEN 主任">南松禮 ALLEN主任</option>
+            <option value="ERIC 專員">謝禮陽 ERIC專員</option>
+            <option value="歐陽酉吉 救生員">歐陽酉吉 救生員</option>
         </select>
 
         <label>📑 交接類別</label>
         <select id="type" onchange="checkType()">
-            <option value="📦 行李物品">📦 行李物品 (寄放/遺失物)</option>
-            <option value="🚗 接駁服務">🚗 接駁服務 (地點/人數/司機)</option>
-            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務 (批量/狀態)</option>
-            <option value="🧹 洗地毯保養">🧹 洗地毯保養 (樓層日期規劃)</option>
+            <option value="📦 行李物品">📦 行李物品 (寄放/包裹/遺失物)</option>
+            <option value="🚗 接駁服務">🚗 接駁服務 (地點/人數/班次/司機)</option>
+            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務 (批量房號/狀態選單)</option>
+            <option value="🧹 洗地毯保養">🧹 洗地毯保養 (2-9F 樓層日期列表)</option>
             <option value="🛠️ 維修報修">🛠️ 維修報修 (紅色警示)</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
 
         <div id="shuttleBox" class="extra-box" style="background:#fff9e6;">
-            <input type="text" id="shDetail" placeholder="地點/人數 (例如: 火車站/4人)">
+            <input type="text" id="shDetail" placeholder="地點/人數 (例如: 台東車站/4人)">
             <input type="text" id="arTime" placeholder="時間/班次 (例如: 14:30 408次)">
             <input type="text" id="driver" placeholder="負責司機姓名">
         </div>
 
         <div id="bedBox" class="extra-box" style="background:#fdf2ff;">
-            <input type="text" id="rooms" placeholder="房號清單 (空格分開: 801 802)">
+            <input type="text" id="rooms" placeholder="房號清單 (空格分開: 801 802 805)">
             <select id="bedStatus">
                 <option value="🔴 預進使用">🔴 預進使用 (已有訂單)</option>
-                <option value="🟢 空房可賣">🟢 空房可賣 (待排房)</option>
+                <option value="🟢 空房可賣">🟢 空房可賣 (待售空房)</option>
                 <option value="⚪ 需拆除">⚪ 需拆除 (恢復雙單床)</option>
             </select>
         </div>
 
         <div id="carpetBox" class="extra-box" style="background:#eceff1;">
-            <div style="display:grid; grid-template-columns:45px 1fr 1fr; text-align:center; font-size:11px; color:#666;">
-                <span>樓層</span><span>預計洗</span><span>已洗完</span>
+            <div style="display:grid; grid-template-columns:45px 1fr 1fr; text-align:center; font-size:11px; color:#666; margin-bottom:5px;">
+                <span>樓層</span><span>預計日期</span><span>完成日期</span>
             </div>
             <div id="carpetGridRows"></div>
         </div>
 
         <div id="normalRoomBox">
             <label>📍 房號 / 位置</label>
-            <input type="text" id="room" placeholder="例如: 8002">
+            <input type="text" id="room" placeholder="例如: 8002 或 門口">
         </div>
 
         <label>📅 發佈日期</label>
         <input type="date" id="targetDate">
 
-        <label>📝 詳細內容說明</label>
-        <textarea id="note" rows="2" placeholder="詳細交代事項..."></textarea>
+        <label>📝 詳細說明</label>
+        <textarea id="note" rows="2" placeholder="詳細內容..."></textarea>
         
-        <button class="btn-send" onclick="save()">發佈交接 (同步Line通知)</button>
+        <button class="btn-send" onclick="save()">發佈交接事項</button>
     </div>
 
     <div class="tab-box">
-        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理事項</button>
+        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理看板</button>
         <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
     <div class="search-box" id="searchArea">
-        <label>🔍 快速分類篩選：</label>
+        <label>🔍 分類快速篩選：</label>
         <select id="categoryFilter" onchange="filterData()">
-            <option value="全部">全部顯示</option>
+            <option value="全部">全部事項</option>
             <option value="📦 行李物品">📦 行李物品</option>
             <option value="🚗 接駁服務">🚗 接駁服務</option>
             <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
@@ -126,14 +126,14 @@
 
     <div id="listArea"></div>
     
-    <button id="batchDelBtn" class="batch-del" style="display:none;" onclick="batchDelete()">🗑️ 一鍵清空所有歷史紀錄</button>
+    <button id="batchDelBtn" class="btn-batch" style="display:none;" onclick="batchDelete()">🗑️ 一鍵清空所有歷史紀錄</button>
 </div>
 
 <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyAViPpQ8uv1wzHjMBpowjJIJLlzNtBaIz-wdjuhAEUrkldfJQXEgoFa1lTHEbbqacb/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbGjqCw-cOZ0HAGZEKO3UbnHg3Kz7wcyhWWZybnPw3Md_uW9cT81CzwdcHZEVMPytfM/exec";
     let allData = [];
 
-    // 初始化地毯 2F-9F
+    // 初始化地毯 2F-9F 行
     const carpetGridRows = document.getElementById('carpetGridRows');
     for(let i=2; i<=9; i++){
         carpetGridRows.innerHTML += `
@@ -168,14 +168,14 @@
             priority = 'bed';
         } else if(type === '🧹 洗地毯保養') {
             priority = 'carpet';
-            room = "地毯工程月行程";
-            let carpetPlan = "【樓層保養進度表】\n";
+            room = "洗地毯保養行程表";
+            let cPlan = "【樓層保養進度】\n";
             for(let i=2; i<=9; i++){
                 let p = document.getElementById('p_date_'+i+'F').value;
                 let d = document.getElementById('d_date_'+i+'F').value;
-                if(p || d) carpetPlan += `${i}F: (預)${p||'--'} (完)${d||'--'}\n`;
+                if(p || d) cPlan += `${i}F: (預)${p||'--'} (完)${d||'--'}\n`;
             }
-            note = carpetPlan + note;
+            note = cPlan + note;
         } else if(type.includes('維修')) {
             priority = 'urgent';
         }
@@ -184,14 +184,14 @@
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value })
-        }).then(() => { alert("已發佈並同步Line通知！"); location.reload(); });
+        }).then(() => { alert("交接事項已發佈！"); location.reload(); });
     }
 
     function loadData(mode) {
-        document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
-        document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
-        document.getElementById('batchDelBtn').style.display = (mode === 'history') ? 'block' : 'none';
+        document.getElementById('btnC').className = (mode === 'current' ? 'tab-btn active' : 'tab-btn');
+        document.getElementById('btnH').className = (mode === 'history' ? 'tab-btn active' : 'tab-btn');
+        document.getElementById('inputSection').style.display = (mode === 'current' ? 'block' : 'none');
+        document.getElementById('batchDelBtn').style.display = (mode === 'history' ? 'block' : 'none');
 
         const area = document.getElementById('listArea');
         area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
@@ -203,44 +203,48 @@
     }
 
     function filterData(mode = 'current') {
-        const filterValue = document.getElementById('categoryFilter').value;
+        const filter = document.getElementById('categoryFilter').value;
         const area = document.getElementById('listArea');
         area.innerHTML = "";
         
         allData.slice().reverse().forEach(row => {
-            if(filterValue !== "全部" && row[2] !== filterValue) return;
-            
+            if(filter !== "全部" && row[2] !== filter) return;
             const isH = (mode === 'history' || row[11]); 
+            // 9. LINE 手動分享內容
+            const lineText = `🏨【${row[2]}交接】\n📍位置：${row[4]}\n📅日期：${row[1]}\n👤發佈：${row[6]}\n📝內容：\n${row[5]}`;
+            const lineUrl = `https://line.me/R/msg/text/?${encodeURIComponent(lineText)}`;
+
             area.innerHTML += `
                 <div class="card p-${row[3]}">
-                    <div style="font-size:11px; color:#666;">📅 ${row[1].split('T')[0]} | 👤 ${row[6]}</div>
+                    <div style="font-size:11px; color:#666;">📅 ${row[1]} | 👤 ${row[6]}</div>
                     <div style="font-weight:bold; font-size:16px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
                     <div style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
-                    
                     ${!isH ? `
                         <button class="btn-done" onclick="finishItem('${row[0]}')">完成</button>
-                        <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容/房號</button>
-                    ` : `<div style="color:green; font-size:11px; margin-top:8px;">✅ 已於 ${row[11]} 完成</div>`}
+                        <a href="${lineUrl}" class="btn-line" target="_blank">分享至 LINE</a>
+                        <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容</button>
+                    ` : `<div style="color:green; font-size:11px; margin-top:10px;">✅ 已處理完成</div>`}
                 </div>`;
         });
     }
 
     function editItem(id, oldRoom, oldNote) {
-        const newRoom = prompt("修改標題/房號清單:", oldRoom);
-        const newNote = prompt("修改說明內容:", oldNote);
-        if (newRoom === null || newNote === null) return;
-        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom, newNote }) }).then(() => location.reload());
+        const nR = prompt("修改位置或行程標題:", oldRoom);
+        const nN = prompt("修改詳細說明內容 (建議全選複製再微調日期):", oldNote);
+        if (nR !== null && nN !== null) {
+            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom: nR, newNote: nN }) }).then(() => location.reload());
+        }
     }
 
     function finishItem(id) {
-        if(confirm("確定已處理完成？")) {
+        if(confirm("確定該事項已處理完成？")) {
             fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload());
         }
     }
 
     function batchDelete() {
-        if(confirm("⚠️ 注意：這將永久清空所有歷史紀錄且不可還原！確定嗎？")) {
-            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_clear_history" }) }).then(() => {
+        if(confirm("⚠️ 注意：這將永久刪除所有歷史紀錄，確定嗎？")) {
+            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_delete_history" }) }).then(() => {
                 alert("歷史紀錄已清空");
                 location.reload();
             });
