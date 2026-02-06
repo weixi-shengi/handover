@@ -1,45 +1,115 @@
-function doPost(e) {
-  var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
-  var sourceSheet = ss.getSheetByName("代辦事項"); 
-  var targetSheet = ss.getSheetByName("已完成"); 
-  var params = JSON.parse(e.postData.contents);
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>飯店櫃檯交接系統</title>
+    <style>
+        :root { --primary: #1a73e8; --success: #34a853; --history: #607d8b; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; padding: 15px; margin: 0; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--primary); margin: 0 0 15px 0; }
+        input, select, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; outline: none; }
+        button { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .tab-box { display: flex; gap: 8px; margin-top: 20px; }
+        .tab-btn { flex: 1; padding: 10px; font-size: 14px; background: #eee; color: #666; border-radius: 8px; border: none; cursor: pointer; }
+        .tab-btn.active { background: var(--history); color: white; }
+        .item { background: #fff; border-left: 5px solid var(--primary); padding: 12px; margin-top: 10px; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
+        .history-item { border-left-color: #999; opacity: 0.8; }
+        .item-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; padding-right: 65px; }
+        .time { font-size: 0.75rem; color: #888; font-weight: normal; }
+        .btn-done { position: absolute; right: 10px; top: 12px; width: 60px; padding: 6px; font-size: 12px; background: var(--success); border-radius: 4px; margin: 0; }
+        .done-time { font-size: 11px; color: var(--success); margin-top: 5px; border-top: 1px dashed #eee; padding-top: 5px; }
+    </style>
+</head>
+<body onload="loadData('current')">
 
-  if (params.action === "delete") {
-    var data = sourceSheet.getDataRange().getValues();
-    for (var i = data.length - 1; i >= 1; i--) {
-      if (data[i][0].toString() === params.id.toString()) {
-        var rowData = data[i];
-        rowData.push(new Date().toLocaleString() + " (已處理)"); 
-        targetSheet.appendRow(rowData); // 搬移到「已完成」分頁
-        sourceSheet.deleteRow(i + 1);  // 從「代辦事項」刪除看板紀錄
-        break;
-      }
+<div class="container">
+    <h2>🏨 飯店櫃檯交接</h2>
+    
+    <div id="inputSection">
+        <input type="text" id="room" placeholder="房號 / 位置">
+        <select id="type">
+            <option value="📦 行李寄放/提取">📦 行李寄放/提取</option>
+            <option value="🌟 VIP/特別需求">🌟 VIP/特別需求</option>
+            <option value="🛠️ 客房維修報修">🛠️ 客房維修報修</option>
+            <option value="🛏️ 補發備品/毛巾">🛏️ 補發備品/毛巾</option>
+            <option value="🧹 清潔/開床服務">🧹 清潔/開床服務</option>
+            <option value="🚗 叫車/接送預約">🚗 叫車/接送預約</option>
+            <option value="🍴 訂餐/早安叫醒">🍴 訂餐/早安叫醒</option>
+            <option value="📢 其他事項">📢 其他事項</option>
+        </select>
+        <input type="text" id="note" placeholder="詳細交接內容...">
+        <button onclick="saveToCloud()">發佈交接</button>
+    </div>
+
+    <div class="tab-box">
+        <button id="btnCurrent" class="tab-btn active" onclick="loadData('current')">待處理看板</button>
+        <button id="btnHistory" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
+    </div>
+
+    <div id="handoverList" style="margin-top:10px;"></div>
+</div>
+
+<script>
+    // 使用你提供的最新網址
+    const API_URL = "https://script.google.com/macros/s/AKfycbyPCuUM1eo3tHmkxK7fgCbwtddqh5BSzMUaLXbfKhGQ0C8MXghTX4nxtJr1vJg5k5hh/exec";
+
+    function saveToCloud() {
+        const room = document.getElementById('room').value;
+        const note = document.getElementById('note').value;
+        if(!room || !note) return alert("請填寫內容");
+
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "add", room: room, type: document.getElementById('type').value, note: note })
+        }).then(() => {
+            alert("已成功發佈！");
+            document.getElementById('room').value = "";
+            document.getElementById('note').value = "";
+            loadData('current');
+        });
     }
-    return ContentService.createTextOutput("Moved").setMimeType(ContentService.MimeType.TEXT);
-  } else {
-    // 新增資料到「代辦事項」
-    sourceSheet.appendRow([
-      new Date().toLocaleString(), 
-      params.room,                 
-      params.type,                 
-      params.note                  
-    ]);
-    return ContentService.createTextOutput("OK").setMimeType(ContentService.MimeType.TEXT);
-  }
-}
 
-function doGet(e) {
-  var ss = SpreadsheetApp.openById("10Car6D63J5d9Z71HcduWzkShAG77dD_r-lo9XcyyxNk");
-  var mode = e.parameter.mode || "current";
-  // 根據網頁指令讀取不同分頁
-  var sheet = (mode === "history") ? ss.getSheetByName("已完成") : ss.getSheetByName("代辦事項");
-  
-  var data = sheet.getDataRange().getValues();
-  if (data.length > 1) { 
-    data.shift(); 
-    if (mode === "history") data = data.slice(-50); // 歷史模式只取最近 50 筆，維持速度
-  } else { 
-    data = []; 
-  }
-  return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
-}
+    function deleteItem(id) {
+        if(!confirm("確定已處理完成？資料將移至歷史存檔。")) return;
+        fetch(API_URL, {
+            method: "POST",
+            mode: "no-cors",
+            body: JSON.stringify({ action: "delete", id: id })
+        }).then(() => {
+            setTimeout(() => loadData('current'), 1200);
+        });
+    }
+
+    function loadData(mode) {
+        document.getElementById('btnCurrent').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('btnHistory').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
+        document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
+
+        const list = document.getElementById('handoverList');
+        list.innerHTML = "<p style='text-align:center; color:#999;'>載入中...</p>";
+
+        fetch(`${API_URL}?mode=${mode}`)
+        .then(res => res.json())
+        .then(data => {
+            list.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>目前無資料</p>";
+            data.reverse().forEach(row => {
+                const isHistory = (mode === 'history');
+                list.innerHTML += `
+                    <div class="item ${isHistory ? 'history-item' : ''}">
+                        <div class="item-header">
+                            <span>${row[1]}</span>
+                            <span class="time">${row[0]}</span>
+                        </div>
+                        <div style="font-size:13px; color:#666;">[${row[2]}]</div>
+                        <div>${row[3]}</div>
+                        ${isHistory ? `<div class="done-time">✅ ${row[4] || '已存檔'}</div>` : `<button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>`}
+                    </div>`;
+            });
+        });
+    }
+</script>
+</body>
+</html>
