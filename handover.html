@@ -3,41 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>飯店智慧看板 V6.5 - 動態更新版</title>
+    <title>飯店智慧看板 V7.0 - 終極全功能版</title>
     <style>
         :root { --urgent: #ff4d4d; --important: #ffa500; --normal: #1a73e8; --bed: #9c27b0; --carpet: #455a64; --bg: #f0f2f5; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 15px; margin: 0; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-        h2 { text-align: center; color: var(--normal); margin-bottom: 20px; }
-        label { display: block; margin-top: 12px; font-size: 13px; color: #555; font-weight: bold; }
-        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; outline: none; }
-        button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn-send { background: var(--normal); color: white; width: 100%; font-size: 16px; padding: 15px; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); padding: 10px; margin: 0; }
+        .container { max-width: 650px; margin: auto; background: white; padding: 15px; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: var(--normal); margin-bottom: 15px; }
+        label { display: block; margin-top: 10px; font-size: 13px; font-weight: bold; color: #555; }
+        input, select, textarea { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 15px; }
         
+        button { border-radius: 8px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-send { background: var(--normal); color: white; width: 100%; padding: 15px; font-size: 16px; margin-top: 15px; }
+        .btn-send:active { transform: scale(0.98); }
+
+        /* 卡片與分色 */
         .card { background: white; border-radius: 10px; padding: 15px; margin-top: 12px; border-left: 8px solid; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .p-urgent { border-left-color: var(--urgent); background: #fff5f5; }
+        .p-important { border-left-color: var(--important); background: #fffcf0; }
         .p-bed { border-left-color: var(--bed); background: #fdf2ff; }
         .p-carpet { border-left-color: var(--carpet); background: #eceff1; }
         .p-normal { border-left-color: var(--normal); }
-        
-        .card-meta { font-size: 11px; color: #666; margin-bottom: 5px; }
-        .btn-edit { background: #ff9800; color: white; padding: 6px 12px; border-radius: 5px; margin-top: 10px; display: inline-block; font-size: 12px; text-decoration: none; }
-        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; padding: 6px 12px; font-size: 12px; width: auto; margin:0; border-radius: 5px; border:none; cursor:pointer; }
-        
-        .check-group { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 10px; background: #f9f9f9; padding: 10px; border-radius: 8px; }
-        .check-item { display: flex; align-items: center; gap: 4px; font-size: 13px; }
-        .check-item input { width: auto; margin: 0; }
+
+        /* 洗地毯專用區 */
+        .carpet-grid { display: grid; grid-template-columns: 45px 1fr 1fr; gap: 8px; align-items: center; margin-top: 5px; background: #fff; padding: 8px; border-radius: 5px; border: 1px solid #eee; }
+        .carpet-grid span { font-size: 14px; font-weight: bold; }
+        .carpet-grid input { padding: 4px; font-size: 12px; }
+
         .extra-box { display: none; margin-top: 10px; padding: 12px; border-radius: 8px; border: 1px solid #eee; }
         
-        .tab-box { display: flex; gap: 8px; margin: 20px 0 10px 0; }
-        .tab-btn { flex: 1; padding: 12px; background: #eee; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; }
+        /* 功能按鈕 */
+        .tab-box { display: flex; gap: 8px; margin: 15px 0; }
+        .tab-btn { flex: 1; padding: 12px; background: #eee; font-size: 14px; }
         .tab-btn.active { background: #607d8b; color: white; }
+        .btn-done { position: absolute; right: 10px; top: 12px; background: #34a853; color: white; width: auto; padding: 6px 12px; font-size: 12px; }
+        .btn-edit { background: #ff9800; color: white; width: auto; padding: 6px 12px; font-size: 12px; margin-top: 10px; }
+        .btn-batch { background: #ff4d4d; color: white; margin-top: 25px; padding: 15px; }
+
+        .search-box { background: #e3f2fd; padding: 12px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #bbdefb; }
     </style>
 </head>
 <body onload="loadData('current')">
 
 <div class="container">
-    <h2>🏨 櫃檯智慧看板 V6.5</h2>
+    <h2>🏨 飯店智慧看板 V7.0</h2>
     
     <div id="inputSection">
         <label>👤 發佈人員</label>
@@ -55,73 +63,119 @@
 
         <label>📑 交接類別</label>
         <select id="type" onchange="checkType()">
-            <option value="📦 行李物品">📦 行李物品</option>
-            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
-            <option value="🧹 洗地毯保養">🧹 洗地毯保養</option>
-            <option value="🛠️ 維修報修">🛠️ 維修報修</option>
+            <option value="📦 行李物品">📦 行李物品 (寄放/遺失物)</option>
+            <option value="🚗 接駁服務">🚗 接駁服務 (地點/人數/司機)</option>
+            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務 (批量/狀態)</option>
+            <option value="🧹 洗地毯保養">🧹 洗地毯保養 (樓層日期規劃)</option>
+            <option value="🛠️ 維修報修">🛠️ 維修報修 (紅色警示)</option>
             <option value="📢 其他事項">📢 其他事項</option>
         </select>
 
+        <div id="shuttleBox" class="extra-box" style="background:#fff9e6;">
+            <input type="text" id="shDetail" placeholder="地點/人數 (例如: 火車站/4人)">
+            <input type="text" id="arTime" placeholder="時間/班次 (例如: 14:30 408次)">
+            <input type="text" id="driver" placeholder="負責司機姓名">
+        </div>
+
         <div id="bedBox" class="extra-box" style="background:#fdf2ff;">
-            <label>📍 併床房號 (例如: 801, 802, 805)</label>
-            <input type="text" id="rooms" placeholder="輸入多個房號...">
+            <input type="text" id="rooms" placeholder="房號清單 (空格分開: 801 802)">
+            <select id="bedStatus">
+                <option value="🔴 預進使用">🔴 預進使用 (已有訂單)</option>
+                <option value="🟢 空房可賣">🟢 空房可賣 (待排房)</option>
+                <option value="⚪ 需拆除">⚪ 需拆除 (恢復雙單床)</option>
+            </select>
         </div>
 
         <div id="carpetBox" class="extra-box" style="background:#eceff1;">
-            <label>🏢 參與樓層</label>
-            <div class="check-group">
-                <label class="check-item"><input type="checkbox" name="f" value="2F">2F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="3F">3F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="4F">4F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="5F">5F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="6F">6F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="7F">7F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="8F">8F</label>
-                <label class="check-item"><input type="checkbox" name="f" value="9F">9F</label>
+            <div style="display:grid; grid-template-columns:45px 1fr 1fr; text-align:center; font-size:11px; color:#666;">
+                <span>樓層</span><span>預計洗</span><span>已洗完</span>
             </div>
+            <div id="carpetGridRows"></div>
         </div>
 
-        <label>📅 預計日期</label>
+        <div id="normalRoomBox">
+            <label>📍 房號 / 位置</label>
+            <input type="text" id="room" placeholder="例如: 8002">
+        </div>
+
+        <label>📅 發佈日期</label>
         <input type="date" id="targetDate">
 
-        <label>📝 詳細內容說明 (可寫多個日期)</label>
-        <textarea id="note" rows="3" placeholder="例如：2/10洗2F、2/12洗3F..."></textarea>
+        <label>📝 詳細內容說明</label>
+        <textarea id="note" rows="2" placeholder="詳細交代事項..."></textarea>
         
-        <button class="btn-send" onclick="save()">發佈事項</button>
+        <button class="btn-send" onclick="save()">發佈交接 (同步Line通知)</button>
     </div>
 
     <div class="tab-box">
-        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理看板</button>
+        <button id="btnC" class="tab-btn active" onclick="loadData('current')">待處理事項</button>
         <button id="btnH" class="tab-btn" onclick="loadData('history')">歷史紀錄查詢</button>
     </div>
 
+    <div class="search-box" id="searchArea">
+        <label>🔍 快速分類篩選：</label>
+        <select id="categoryFilter" onchange="filterData()">
+            <option value="全部">全部顯示</option>
+            <option value="📦 行李物品">📦 行李物品</option>
+            <option value="🚗 接駁服務">🚗 接駁服務</option>
+            <option value="🛏️ 拆併床服務">🛏️ 拆併床服務</option>
+            <option value="🧹 洗地毯保養">🧹 洗地毯保養</option>
+            <option value="🛠️ 維修報修">🛠️ 維修報修</option>
+        </select>
+    </div>
+
     <div id="listArea"></div>
+    
+    <button id="batchDelBtn" class="batch-del" style="display:none;" onclick="batchDelete()">🗑️ 一鍵清空所有歷史紀錄</button>
 </div>
 
 <script>
-    // 使用您最新的 API 網址
-    const API_URL = "https://script.google.com/macros/s/AKfycbwkmrlr6ld2fd1JXlDljGBkfNNeZnzlcDPVfWa82OA0Gcbo7eqVqEMRRx2JtZ83wwEM/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyAViPpQ8uv1wzHjMBpowjJIJLlzNtBaIz-wdjuhAEUrkldfJQXEgoFa1lTHEbbqacb/exec";
+    let allData = [];
+
+    // 初始化地毯 2F-9F
+    const carpetGridRows = document.getElementById('carpetGridRows');
+    for(let i=2; i<=9; i++){
+        carpetGridRows.innerHTML += `
+            <div class="carpet-grid">
+                <span>${i}F</span>
+                <input type="date" id="p_date_${i}F">
+                <input type="date" id="d_date_${i}F">
+            </div>`;
+    }
 
     function checkType() {
         const type = document.getElementById('type').value;
+        document.getElementById('shuttleBox').style.display = (type === '🚗 接駁服務') ? 'block' : 'none';
         document.getElementById('bedBox').style.display = (type === '🛏️ 拆併床服務') ? 'block' : 'none';
         document.getElementById('carpetBox').style.display = (type === '🧹 洗地毯保養') ? 'block' : 'none';
+        document.getElementById('normalRoomBox').style.display = (type !== '🛏️ 拆併床服務' && type !== '🧹 洗地毯保養') ? 'block' : 'none';
     }
 
     function save() {
         const type = document.getElementById('type').value;
         const date = document.getElementById('targetDate').value;
+        let room = document.getElementById('room').value;
         let note = document.getElementById('note').value;
-        let room = "一般位置";
         let priority = 'normal';
 
-        if(type === '🛏️ 拆併床服務') {
-            room = "併床清單: " + document.getElementById('rooms').value;
+        if(type === '🚗 接駁服務') {
+            priority = 'important';
+            note = `地點:${document.getElementById('shDetail').value} | 時間:${document.getElementById('arTime').value} | 司機:${document.getElementById('driver').value}\n${note}`;
+        } else if(type === '🛏️ 拆併床服務') {
+            room = "併床:" + document.getElementById('rooms').value;
+            note = `【${document.getElementById('bedStatus').value}】\n${note}`;
             priority = 'bed';
         } else if(type === '🧹 洗地毯保養') {
-            const fs = Array.from(document.querySelectorAll('input[name="f"]:checked')).map(el => el.value);
-            room = "洗地毯樓層: " + fs.join(", ");
             priority = 'carpet';
+            room = "地毯工程月行程";
+            let carpetPlan = "【樓層保養進度表】\n";
+            for(let i=2; i<=9; i++){
+                let p = document.getElementById('p_date_'+i+'F').value;
+                let d = document.getElementById('d_date_'+i+'F').value;
+                if(p || d) carpetPlan += `${i}F: (預)${p||'--'} (完)${d||'--'}\n`;
+            }
+            note = carpetPlan + note;
         } else if(type.includes('維修')) {
             priority = 'urgent';
         }
@@ -130,60 +184,67 @@
             method: "POST",
             mode: "no-cors",
             body: JSON.stringify({ action: "add", date, room, note, type, priority, staff: document.getElementById('staff').value })
-        }).then(() => { alert("發佈成功！"); location.reload(); });
+        }).then(() => { alert("已發佈並同步Line通知！"); location.reload(); });
     }
 
     function loadData(mode) {
         document.getElementById('btnC').className = (mode === 'current') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('btnH').className = (mode === 'history') ? 'tab-btn active' : 'tab-btn';
         document.getElementById('inputSection').style.display = (mode === 'current') ? 'block' : 'none';
+        document.getElementById('batchDelBtn').style.display = (mode === 'history') ? 'block' : 'none';
 
         const area = document.getElementById('listArea');
         area.innerHTML = "<p style='text-align:center;'>資料讀取中...</p>";
 
         fetch(`${API_URL}?mode=${mode}`).then(res => res.json()).then(data => {
-            area.innerHTML = data.length ? "" : "<p style='text-align:center; color:#999;'>✅ 目前無紀錄</p>";
-            data.reverse().forEach(row => {
-                const isH = (mode === 'history');
-                area.innerHTML += `
-                    <div class="card p-${row[3]}">
-                        <div class="card-meta">📅 ${row[1].split('T')[0]} | 👤 ${row[6]}</div>
-                        <div style="font-weight:bold; font-size:16px; margin-top:5px; color:#333;">${row[4]}</div>
-                        <div style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
-                        
-                        ${isH ? `
-                            <button class="btn-done" style="background:#666" onclick="clearHistory('${row[0]}')">永久刪除</button>
-                        ` : `
-                            <button class="btn-done" onclick="deleteItem('${row[0]}')">完成</button>
-                            <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容/剩餘房號</button>
-                        `}
-                    </div>`;
-            });
+            allData = data;
+            filterData(mode);
+        });
+    }
+
+    function filterData(mode = 'current') {
+        const filterValue = document.getElementById('categoryFilter').value;
+        const area = document.getElementById('listArea');
+        area.innerHTML = "";
+        
+        allData.slice().reverse().forEach(row => {
+            if(filterValue !== "全部" && row[2] !== filterValue) return;
+            
+            const isH = (mode === 'history' || row[11]); 
+            area.innerHTML += `
+                <div class="card p-${row[3]}">
+                    <div style="font-size:11px; color:#666;">📅 ${row[1].split('T')[0]} | 👤 ${row[6]}</div>
+                    <div style="font-weight:bold; font-size:16px; margin-top:5px;">${row[4]} <small>[${row[2]}]</small></div>
+                    <div style="margin-top:5px; color:#333; white-space: pre-wrap; line-height:1.4;">${row[5]}</div>
+                    
+                    ${!isH ? `
+                        <button class="btn-done" onclick="finishItem('${row[0]}')">完成</button>
+                        <button class="btn-edit" onclick="editItem('${row[0]}', '${row[4]}', \`${row[5]}\`)">✏️ 修改內容/房號</button>
+                    ` : `<div style="color:green; font-size:11px; margin-top:8px;">✅ 已於 ${row[11]} 完成</div>`}
+                </div>`;
         });
     }
 
     function editItem(id, oldRoom, oldNote) {
         const newRoom = prompt("修改標題/房號清單:", oldRoom);
-        const newNote = prompt("修改詳細內容/備註:", oldNote);
+        const newNote = prompt("修改說明內容:", oldNote);
         if (newRoom === null || newNote === null) return;
-
-        fetch(API_URL, {
-            method: "POST",
-            mode: "no-cors",
-            body: JSON.stringify({ action: "update_content", id, newRoom, newNote })
-        }).then(() => { alert("更新成功！"); location.reload(); });
+        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "update_content", id, newRoom, newNote }) }).then(() => location.reload());
     }
 
-    function deleteItem(id) {
-        if(!confirm("確定已處理完成？")) return;
-        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) })
-        .then(() => location.reload());
+    function finishItem(id) {
+        if(confirm("確定已處理完成？")) {
+            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "delete", id }) }).then(() => location.reload());
+        }
     }
 
-    function clearHistory(id) {
-        if(!confirm("永久刪除歷史紀錄？")) return;
-        fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "clear_history", id }) })
-        .then(() => location.reload());
+    function batchDelete() {
+        if(confirm("⚠️ 注意：這將永久清空所有歷史紀錄且不可還原！確定嗎？")) {
+            fetch(API_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "batch_clear_history" }) }).then(() => {
+                alert("歷史紀錄已清空");
+                location.reload();
+            });
+        }
     }
 </script>
 </body>
